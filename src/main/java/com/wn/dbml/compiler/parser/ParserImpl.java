@@ -1,0 +1,644 @@
+package com.wn.dbml.compiler.parser;
+
+import com.wn.dbml.compiler.Lexer;
+import com.wn.dbml.compiler.Parser;
+import com.wn.dbml.compiler.ParsingException;
+import com.wn.dbml.compiler.Position;
+import com.wn.dbml.compiler.token.TokenType;
+import com.wn.dbml.model.*;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.wn.dbml.compiler.token.TokenType.*;
+
+/**
+ * The default parser implementation.
+ */
+public class ParserImpl implements Parser {
+	private final List<RelationshipDefinition> relationshipDefinitions = new ArrayList<>();
+	private TokenAccess tokenAccess;
+	private Database database;
+	
+	@Override
+	public Database parse(final Lexer lexer) {
+		tokenAccess = new TokenAccess(lexer);
+		database = new Database();
+		loop:
+		while (true) {
+			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, EOF);
+			switch (tokenType()) {
+				case PROJECT -> parseProject();
+				case TABLE -> parseTable();
+				case REF -> parseRelationship();
+				case ENUM -> parseEnum();
+				case TABLEGROUP -> parseTableGroup();
+				default -> {
+					break loop;
+				}
+			}
+		}
+		createRelationships();
+		return database;
+	}
+	
+	private void parseProject() {
+		if (database.getProject() != null) {
+			error("Project is already defined");
+		}
+		String name = null;
+		next(LITERAL, DSTRING, LBRACE); // projectName
+		if (typeIs(LITERAL, DSTRING)) {
+			name = tokenValue();
+			next(LBRACE);
+		}
+		var project = new Project(name);
+		loop:
+		while (true) {
+			next(TABLE, REF, ENUM, TABLEGROUP, LITERAL, NOTE, RBRACE);
+			switch (tokenType()) {
+				case TABLE -> parseTable();
+				case REF -> parseRelationship();
+				case ENUM -> parseEnum();
+				case TABLEGROUP -> parseTableGroup();
+				case LITERAL -> parseProjectProperty(project);
+				case NOTE -> project.setNote(parseNote());
+				default -> {
+					break loop;
+				}
+			}
+		}
+		database.setProject(project);
+	}
+	
+	private void parseProjectProperty(final Project project) {
+		var property = tokenValue();
+		next(COLON);
+		next(stringTypes());
+		project.getProperties().put(property, tokenValue());
+	}
+	
+	private void parseTable() {
+		var table = parseTableHead();
+		parseTableBody(table);
+	}
+	
+	private Table parseTableHead() {
+		var tableName = parseTableName();
+		var schema = database.getOrCreateSchema(tableName.schema());
+		var table = schema.createTable(tableName.table());
+		if (table == null) {
+			error("Table '%s' is already defined", tableName);
+		} else {
+			next(AS, LBRACK, LBRACE);
+			if (typeIs(AS)) {
+				next(LITERAL, DSTRING); // alias
+				var alias = tokenValue();
+				if (database.containsAlias(alias)) {
+					error("Alias '%s' is already defined", alias);
+				}
+				table.setAlias(alias);
+				next(LBRACK, LBRACE);
+			}
+			if (typeIs(LBRACK)) {
+				do {
+					next(HEADERCOLOR, NOTE);
+					parseTableSetting(table);
+					next(COMMA, RBRACK);
+				} while (!typeIs(RBRACK));
+				next(LBRACE);
+			}
+		}
+		return table;
+	}
+	
+	private void parseTableSetting(final Table table) {
+		if (typeIs(HEADERCOLOR)) {
+			addSetting(table, TableSetting.HEADERCOLOR, COLOR);
+		} else if (typeIs(NOTE)) {
+			table.setNote(parseInlineNote());
+		}
+	}
+	
+	private void parseTableBody(final Table table) {
+		next(LITERAL);
+		parseColumn(table);
+		loop:
+		while (true) {
+			next(LITERAL, DSTRING, INDEXES, NOTE, RBRACE);
+			switch (tokenType()) {
+				case LITERAL, DSTRING -> parseColumn(table);
+				case INDEXES -> parseIndexes(table);
+				case NOTE -> table.setNote(parseNote());
+				default -> {
+					break loop;
+				}
+			}
+		}
+	}
+	
+	private void parseColumn(final Table table) {
+		var name = tokenValue();
+		if (table.containsColumn(name)) {
+			error("Column '%s' is already defined", Name.of(table, name));
+		}
+		try (var ignored = new LinebreakMode()) {
+			var datatype = parseColumnDatatype();
+			var column = table.addColumn(name, datatype);
+			if (typeIs(LBRACK)) {
+				do {
+					next(NOT_NULL, NULL, PRIMARY_KEY, PK, UNIQUE, INCREMENT, NOTE, REF, DEFAULT);
+					parseColumnSetting(column);
+					next(COMMA, RBRACK);
+				} while (!typeIs(RBRACK));
+			}
+		}
+	}
+	
+	private String parseColumnDatatype() {
+		try (var ignored = new SpaceMode()) {
+			next(SPACE);
+			next(LITERAL, DSTRING); // datatype
+			var datatype = new StringBuilder(tokenValue());
+			if (typeIs(LITERAL)) {
+				do {
+					next(LITERAL, SPACE, LINEBREAK);
+					if (typeIs(LITERAL)) {
+						datatype.append(tokenValue());
+					}
+				} while (!typeIs(SPACE, LINEBREAK));
+			} else if (typeIs(DSTRING)) {
+				next(SPACE);
+			}
+			if (!typeIs(LINEBREAK)) {
+				next(LBRACK, LINEBREAK);
+			}
+			return datatype.toString();
+		}
+	}
+	
+	private void parseColumnSetting(final Column column) {
+		switch (tokenType()) {
+			case NOT_NULL, NULL -> addSetting(column, ColumnSetting.NOT_NULL);
+			case PRIMARY_KEY, PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
+			case UNIQUE -> addSetting(column, ColumnSetting.UNIQUE);
+			case INCREMENT -> addSetting(column, ColumnSetting.INCREMENT);
+			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypes());
+			case NOTE -> column.setNote(parseInlineNote());
+			case REF -> relationshipDefinitions.add(parseInlineRef(column));
+			default -> throw new IllegalStateException("Unexpected value: " + tokenType());
+		}
+	}
+	
+	private RelationshipDefinition parseInlineRef(final Column columnFrom) {
+		String name = null;
+		next(LITERAL, DSTRING, COLON); // name
+		if (typeIs(LITERAL, DSTRING)) {
+			name = tokenValue();
+			next(COLON);
+		}
+		var relation = parseRelation();
+		var columnTo = parseColumnName();
+		return new RelationshipDefinition(position(),
+				name, relation,
+				new ColumnNames(columnFrom.getTable().getSchema().getName(), columnFrom.getTable().getName(), List.of(columnFrom.getName())),
+				new ColumnNames(columnTo.schema(), columnTo.table(), List.of(columnTo.column())),
+				new EnumMap<>(RelationshipSetting.class));
+	}
+	
+	private void parseIndexes(final Table table) {
+		next(LBRACE);
+		do {
+			next(LPAREN, LITERAL, EXPR);
+			parseIndex(table);
+		} while (!lookaheadTypeIs(RBRACE));
+		next(RBRACE);
+	}
+	
+	private void parseIndex(final Table table) {
+		try (var ignored = new LinebreakMode()) {
+			var index = table.addIndex();
+			if (typeIs(LPAREN)) {
+				do {
+					next(LITERAL, EXPR);
+					parseIndexColumn(table, index);
+					next(COMMA, RPAREN);
+				} while (!typeIs(RPAREN));
+			} else {
+				parseIndexColumn(table, index);
+			}
+			if (lookaheadTypeIs(LBRACK)) {
+				next(LBRACK);
+				if (lookaheadTypeIs(PK)) {
+					next(PK);
+					addSetting(index, IndexSetting.PK);
+					next(RBRACK);
+				} else {
+					do {
+						next(UNIQUE, NAME, TYPE, NOTE);
+						parseIndexSetting(index);
+						next(COMMA, RBRACK);
+					} while (!typeIs(RBRACK));
+				}
+			}
+			next(LINEBREAK, RBRACE);
+		}
+	}
+	
+	private void parseIndexColumn(final Table table, final Index index) {
+		var columnName = tokenValue();
+		if (typeIs(LITERAL) && !table.containsColumn(columnName)) {
+			error("Column '%s' is not defined", columnName);
+		}
+		if (!index.addColumn(columnName)) {
+			error("Column '%s' is already defined", columnName);
+		}
+	}
+	
+	private void parseIndexSetting(final Index index) {
+		switch (tokenType()) {
+			case UNIQUE -> addSetting(index, IndexSetting.UNIQUE);
+			case NAME -> addSetting(index, IndexSetting.NAME, stringTypes());
+			case TYPE -> addSetting(index, IndexSetting.TYPE, BTREE, HASH);
+			case NOTE -> index.setNote(parseInlineNote());
+			default -> throw new IllegalStateException("Unexpected value: " + tokenType());
+		}
+	}
+	
+	private void parseRelationship() {
+		try (var ignored = new LinebreakMode()) {
+			boolean linebreak = false;
+			String name = null;
+			next(LITERAL, DSTRING, LBRACE, COLON, LINEBREAK); // name
+			if (typeIs(LINEBREAK)) {
+				linebreak = true;
+				next(LITERAL, DSTRING, LBRACE, COLON); // name
+			}
+			if (typeIs(LITERAL, DSTRING)) {
+				name = tokenValue();
+				next(LBRACE, COLON, LINEBREAK);
+				if (typeIs(LINEBREAK)) {
+					linebreak = true;
+					next(LBRACE);
+				}
+			}
+			if (linebreak && typeIs(COLON)) {
+				expected(LBRACE);
+			}
+			var braced = typeIs(LBRACE);
+			if (braced && lookaheadTypeIs(LINEBREAK)) {
+				next(LINEBREAK);
+			}
+			var columnFrom = parseRefColumnNames();
+			var relation = parseRelation();
+			var columnTo = parseRefColumnNames();
+			var settings = parseRelationshipSettings();
+			var position = position();
+			if (braced) {
+				if (lookaheadTypeIs(LINEBREAK)) {
+					next(LINEBREAK);
+				}
+				next(RBRACE);
+				position = position();
+			} else if (!lookaheadTypeIs(EOF)) {
+				next(LINEBREAK);
+			}
+			var ref = new RelationshipDefinition(position,
+					name, relation,
+					columnFrom,
+					columnTo,
+					settings);
+			relationshipDefinitions.add(ref);
+		}
+	}
+	
+	private Map<RelationshipSetting, String> parseRelationshipSettings() {
+		var map = new EnumMap<RelationshipSetting, String>(RelationshipSetting.class);
+		if (lookaheadTypeIs(LBRACK)) {
+			next(LBRACK);
+			do {
+				next(DELETE, UPDATE);
+				var setting = RelationshipSetting.valueOf(tokenType().name());
+				next(COLON);
+				next(CASCADE, RESTRICT, SET_NULL, SET_DEFAULT, NO_ACTION);
+				map.put(setting, tokenValue());
+				next(COMMA, RBRACK);
+			} while (!typeIs(RBRACK));
+		}
+		return map;
+	}
+	
+	private Relation parseRelation() {
+		next(LT, GT, MINUS, NE);
+		return Relation.of(tokenValue());
+	}
+	
+	private void parseEnum() {
+		var tableName = parseTableName();
+		var schema = database.getOrCreateSchema(tableName.schema());
+		var anEnum = schema.createEnum(tableName.table());
+		if (anEnum == null) {
+			error("Enum '%s' is already defined", tableName);
+		} else {
+			next(LBRACE);
+			do {
+				next(LITERAL, DSTRING); // name
+				var name = tokenValue();
+				var enumValue = anEnum.addValue(name);
+				if (enumValue == null) {
+					error("Enum value '%s' is already defined", Name.of(anEnum, name));
+				} else {
+					try (var ignored = new LinebreakMode()) {
+						next(LBRACK, LINEBREAK);
+						if (typeIs(LBRACK)) {
+							do {
+								next(NOTE);
+								parseEnumSetting(enumValue);
+								next(COMMA, RBRACK);
+							} while (!typeIs(RBRACK));
+							next(LINEBREAK);
+						}
+					}
+				}
+			} while (!lookaheadTypeIs(RBRACE));
+			next(RBRACE);
+		}
+	}
+	
+	private void parseEnumSetting(final EnumValue value) {
+		if (typeIs(NOTE)) {
+			value.setNote(parseInlineNote());
+		} else {
+			throw new IllegalStateException("Unexpected value: " + tokenType());
+		}
+	}
+	
+	private void parseTableGroup() {
+		var tableGroupName = parseTableName();
+		var schema = database.getOrCreateSchema(tableGroupName.schema());
+		var tableGroup = schema.createTableGroup(tableGroupName.table());
+		if (tableGroup == null) {
+			error("TableGroup '%s' is already defined", tableGroupName);
+		} else {
+			next(LBRACE);
+			while (true) {
+				var tableName = parseTableName();
+				var table = findTable(tableName);
+				if (!tableGroup.addTable(table)) {
+					error("Table '%s' is already defined", table);
+				}
+				if (lookaheadTypeIs(RBRACE)) {
+					next(RBRACE);
+					break;
+				}
+			}
+		}
+	}
+	
+	private void createRelationships() {
+		for (var definition : relationshipDefinitions) {
+			var from = definition.from();
+			var to = definition.to();
+			if (from.equals(to)) {
+				error(definition, "Two endpoints are the same");
+			} else if (from.columns().size() != to.columns().size()) {
+				error(definition, "Two endpoints have unequal number of fields");
+			}
+			var relationship = database.createRelationship(definition.name(), definition.relation(),
+					validateColumnNames(definition, from), validateColumnNames(definition, to), definition.settings());
+			if (relationship == null) {
+				error(definition, "Reference with the same endpoints already exists");
+			}
+		}
+	}
+	
+	private List<Column> validateColumnNames(final RelationshipDefinition definition, final ColumnNames names) {
+		var schema = database.getOrCreateSchema(names.schema());
+		if (!schema.containsTable(names.table())) {
+			error(definition, "Table '%s' is not defined", Name.of(schema, names.table()));
+		}
+		var table = schema.getTable(names.table());
+		for (var column : names.columns()) {
+			if (!table.containsColumn(column)) {
+				error(definition, "Column '%s' is not defined", Name.of(table, column));
+			}
+		}
+		return names.columns().stream().map(table::getColumn).toList();
+	}
+	
+	private Table findTable(final TableName tableName) {
+		var table = database.getAlias(tableName.table());
+		if (table == null) {
+			var tableSchema = database.getOrCreateSchema(tableName.schema());
+			table = tableSchema.getTable(tableName.table());
+		}
+		if (table == null) {
+			error("Table '%s' is not defined", tableName);
+		}
+		return table;
+	}
+	
+	private TableName parseTableName() {
+		String schemaName = Schema.DEFAULT_NAME, tableName;
+		next(LITERAL, DSTRING); // schemaName, tableName
+		tableName = tokenValue();
+		if (lookaheadTypeIs(DOT)) {
+			next(DOT);
+			next(LITERAL, DSTRING); // tableName
+			schemaName = tableName;
+			tableName = tokenValue();
+		}
+		return new TableName(schemaName, tableName);
+	}
+	
+	private ColumnName parseColumnName() {
+		String schemaName = Schema.DEFAULT_NAME, tableName, columnName;
+		next(LITERAL, DSTRING); // schemaName, tableName
+		tableName = tokenValue();
+		next(DOT);
+		next(LITERAL, DSTRING); // tableName, columnName
+		columnName = tokenValue();
+		if (lookaheadTypeIs(DOT)) {
+			next(DOT);
+			next(LITERAL, DSTRING); // columnName
+			schemaName = tableName;
+			tableName = columnName;
+			columnName = tokenValue();
+		}
+		return new ColumnName(schemaName, tableName, columnName);
+	}
+	
+	private ColumnNames parseRefColumnNames(final TokenType... after) {
+		String schemaName = Schema.DEFAULT_NAME, tableName, columnName;
+		var columnNames = new ArrayList<String>();
+		next(LITERAL, DSTRING); // schemaName, tableName
+		tableName = tokenValue();
+		next(DOT);
+		next(LITERAL, DSTRING, LPAREN); // tableName, columnName
+		if (typeIs(LITERAL, DSTRING)) {
+			columnName = tokenValue();
+			if (lookaheadTypeIs(DOT)) {
+				next(DOT);
+				schemaName = tableName;
+				tableName = columnName;
+				next(LITERAL, DSTRING, LPAREN); // columnName
+				if (typeIs(LITERAL, DSTRING)) {
+					columnNames.add(tokenValue());
+				} else if (typeIs(LPAREN)) {
+					parseRefColumnNames(columnNames);
+				}
+			} else {
+				columnNames.add(columnName);
+			}
+		} else if (typeIs(LPAREN)) {
+			parseRefColumnNames(columnNames);
+		}
+		next(after);
+		return new ColumnNames(schemaName, tableName, columnNames);
+	}
+	
+	private void parseRefColumnNames(final List<String> columnNames) {
+		do {
+			next(LITERAL, DSTRING); // columnName
+			columnNames.add(tokenValue());
+			next(COMMA, RPAREN);
+		} while (!typeIs(RPAREN));
+	}
+	
+	private Note parseNote() {
+		next(COLON, LBRACE);
+		var braced = typeIs(LBRACE);
+		next(stringTypes());
+		var note = tokenValue();
+		if (braced) {
+			next(RBRACE);
+		}
+		return new Note(note);
+	}
+	
+	private Note parseInlineNote() {
+		next(COLON);
+		next(stringTypes());
+		return new Note(tokenValue());
+	}
+	
+	private <T extends Setting> void addSetting(final SettingHolder<T> holder, final T setting, final TokenType... types) {
+		if (types != null && types.length > 0) {
+			next(COLON);
+			next(types);
+		}
+		holder.addSetting(setting, tokenValue());
+	}
+	
+	private TokenType[] stringTypes() {
+		return new TokenType[]{SSTRING, DSTRING, TSTRING};
+	}
+	
+	private void next(final TokenType... types) {
+		tokenAccess.next(types);
+	}
+	
+	private TokenType tokenType() {
+		return tokenAccess.type();
+	}
+	
+	private String tokenValue() {
+		return tokenAccess.value();
+	}
+	
+	private boolean lookaheadTypeIs(final TokenType type) {
+		return tokenAccess.lookaheadTypeIs(type);
+	}
+	
+	private boolean typeIs(final TokenType type) {
+		return tokenAccess.typeIs(type);
+	}
+	
+	private boolean typeIs(final TokenType... types) {
+		return tokenAccess.typeIs(types);
+	}
+	
+	private void expected(final TokenType... types) {
+		tokenAccess.expected(types);
+	}
+	
+	private void error(final RelationshipDefinition definition, final String msg, final Object... args) {
+		error(definition, String.format(msg, args));
+	}
+	
+	private void error(final RelationshipDefinition definition, final String msg) {
+		throw new ParsingException(definition.position(), msg);
+	}
+	
+	private void error(final String msg, final Object... args) {
+		tokenAccess.error(msg, args);
+	}
+	
+	private Position position() {
+		return tokenAccess.position();
+	}
+	
+	@Override
+	public String toString() {
+		return tokenAccess.toString();
+	}
+	
+	private class LinebreakMode implements AutoCloseable {
+		public LinebreakMode() {
+			tokenAccess.setIgnoreLinebreaks(false);
+		}
+		
+		@Override
+		public void close() {
+			tokenAccess.setIgnoreLinebreaks(true);
+		}
+	}
+	
+	private class SpaceMode implements AutoCloseable {
+		public SpaceMode() {
+			tokenAccess.setIgnoreSpaces(false);
+		}
+		
+		@Override
+		public void close() {
+			tokenAccess.setIgnoreSpaces(true);
+		}
+	}
+	
+	private record TableName(
+			String schema, String table
+	) {
+		@Override
+		public String toString() {
+			return Name.ofTable(schema, table);
+		}
+	}
+	
+	private record ColumnName(
+			String schema, String table, String column
+	) {
+		@Override
+		public String toString() {
+			return Name.ofColumn(schema, table, column);
+		}
+	}
+	
+	private record ColumnNames(
+			String schema, String table, List<String> columns
+	) {
+		@Override
+		public String toString() {
+			return Name.ofColumns(schema, table, columns);
+		}
+	}
+	
+	private record RelationshipDefinition(
+			Position position,
+			String name, Relation relation,
+			ColumnNames from, ColumnNames to,
+			Map<RelationshipSetting, String> settings
+	) {
+	}
+}

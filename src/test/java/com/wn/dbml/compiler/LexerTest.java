@@ -1,0 +1,276 @@
+package com.wn.dbml.compiler;
+
+import com.wn.dbml.compiler.lexer.LexerImpl;
+import com.wn.dbml.compiler.token.TokenType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import static com.wn.dbml.compiler.token.TokenType.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
+class LexerTest {
+	
+	private Lexer getLexer(final String dbml) {
+		return new LexerImpl(dbml);
+	}
+	
+	@ParameterizedTest
+	@MethodSource
+	void testName(String string, List<TokenType> expected) {
+		var lexer = getLexer(string);
+		
+		var actual = lexer.tokenStream().map(Token::getType).toList();
+		
+		assertEquals(expected, actual);
+	}
+	
+	static Stream<Arguments> testName() {
+		return Stream.of(
+				arguments("ab", List.of(LITERAL, EOF)),
+				arguments("ab12", List.of(LITERAL, EOF)),
+				arguments("ab12ab", List.of(LITERAL, EOF)),
+				arguments("12ab", List.of(LITERAL, EOF)),
+				arguments("12", List.of(LITERAL, EOF)),
+				arguments("_12", List.of(LITERAL, EOF)),
+				arguments("1_2", List.of(LITERAL, EOF))
+		);
+	}
+	
+	@Test
+	void testKeyword() {
+		var dbml = "table";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(TABLE, EOF), types);
+		assertEquals(dbml, tokenList.get(0).getValue());
+	}
+	
+	@Test
+	void testMultiKeyword() {
+		var dbml = "primary key";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(PRIMARY_KEY, EOF), types);
+		assertEquals(dbml, tokenList.get(0).getValue());
+	}
+	
+	@ParameterizedTest
+	@MethodSource
+	void testString(final char quote, final TokenType expectedType) {
+		var str = "test string \\ with unicode 倀";
+		var dbml = quote + str + quote;
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(expectedType, EOF), types);
+		assertEquals(str, tokenList.get(0).getValue());
+	}
+	
+	static Stream<Arguments> testString() {
+		return Stream.of(
+				arguments("'", SSTRING),
+				arguments("\"", DSTRING),
+				arguments("`", EXPR)
+		);
+	}
+	
+	@Test
+	void testStringEscapedQuote() {
+		var quote = "'";
+		var str = "test string \\" + quote + " with unicode 倀";
+		var dbml = quote + str + quote;
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(SSTRING, EOF), types);
+		assertEquals(str.replace("\\", ""), tokenList.get(0).getValue());
+	}
+	
+	@Test
+	void testStringEOF() {
+		var dbml = "'test string with unicode 倀";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(ILLEGAL), types);
+	}
+	
+	@Test
+	void testMultiLineString() {
+		var dbml = """
+				'''
+				
+				test string with unicode 倀
+				  indented \\
+				  continued \\\\
+				  escaped \\'''
+				  \\ inline
+				'''""";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(TSTRING, EOF), types);
+		assertEquals("""
+				test string with unicode 倀
+				  indented   continued \\
+				  escaped '''
+				  \\ inline""", tokenList.get(0).getValue());
+	}
+	
+	@Test
+	void testMultiLineStringEOF() {
+		var dbml = """
+				'''
+				
+				test string with unicode 倀
+				  indented""";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(ILLEGAL), types);
+	}
+	
+	@Test
+	void testComment() {
+		var dbml = "//'test string with unicode 倀";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(COMMENT, EOF), types);
+	}
+	
+	@Test
+	void testNotComment() {
+		var dbml = "/'test string with unicode 倀";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(ILLEGAL), types);
+	}
+	
+	@Test
+	void testMultiLineComment() {
+		var dbml = """
+				/*
+				
+				test string with unicode 倀
+				  indented
+				*/""";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(COMMENT, EOF), types);
+		assertEquals("""
+				test string with unicode 倀
+				  indented""", tokenList.get(0).getValue());
+	}
+	
+	@Test
+	void testLinebreak() {
+		var dbml = "\r\n'test string with unicode 倀'";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(LINEBREAK, SSTRING, EOF), types);
+		assertEquals(2, lexer.getPosition().line());
+	}
+	
+	@Test
+	void testLinebreakNoCollapsing() {
+		var dbml = "\r\n\r\n'test string'";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(LINEBREAK, LINEBREAK, SSTRING, EOF), types);
+		assertEquals(3, lexer.getPosition().line());
+		assertEquals(13, lexer.getPosition().column());
+	}
+	
+	@Test
+	void testSpaceNoCollapsing() {
+		var dbml = "table  tbl";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(TABLE, SPACE, SPACE, LITERAL, EOF), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(10, lexer.getPosition().column());
+	}
+	
+	@ParameterizedTest
+	@MethodSource
+	void testColor(final String color, final TokenType expectedType) {
+		var dbml = "#" + color;
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		if (expectedType == COLOR) {
+			assertEquals(List.of(expectedType, EOF), types);
+			assertEquals(color, tokenList.get(0).getValue());
+		} else {
+			assertEquals(List.of(expectedType), types);
+		}
+	}
+	
+	static Stream<Arguments> testColor() {
+		return Stream.of(
+				arguments(" ", ILLEGAL),
+				arguments("0", ILLEGAL),
+				arguments("x", ILLEGAL),
+				arguments("xxx", ILLEGAL),
+				arguments("xxxxxx", ILLEGAL),
+				arguments("1 ab", ILLEGAL),
+				arguments("1a b2cd", ILLEGAL),
+				arguments("1ab", COLOR),
+				arguments("1ab2cd", COLOR)
+		);
+	}
+	
+	@Test
+	void testUnknown() {
+		var dbml = "&";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(ILLEGAL), types);
+	}
+	
+}
