@@ -3,7 +3,7 @@
 Database Markup Language (DBML), designed to define and document database structures.
 See the [original repository](https://github.com/holistics/dbml).
 
-Written in Java 17.
+Using Java 17.
 
 Example usage:
 ```java
@@ -11,7 +11,7 @@ import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Database;
 
-public class Example {
+class Example {
   public static void main(String[] args) {
     var dbml = """
         Table table1 {
@@ -25,4 +25,13 @@ public class Example {
         .forEach(System.out::println); // prints "table1"
   }
 }
+```
+
+Maven dependency:
+```xml
+<dependency>
+    <groupId>io.github.nilswende</groupId>
+    <artifactId>dbml-java</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
