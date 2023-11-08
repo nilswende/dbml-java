@@ -145,6 +145,7 @@ public class LexerImpl extends AbstractLexer {
 				sb.append((char) c);
 			}
 			if (lookahead.equals(quote)) {
+				multiLineSb.appendLine(sb.toString());
 				skipChars(quote.length());
 				break;
 			}
