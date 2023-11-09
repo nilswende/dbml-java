@@ -123,7 +123,7 @@ class LexerTest {
 				  continued \\\\
 				  escaped \\'''
 				  \\ inline
-				'''""";
+				end'''""";
 		var lexer = getLexer(dbml);
 		
 		var tokenList = lexer.tokenList();
@@ -134,7 +134,8 @@ class LexerTest {
 				test string with unicode 倀
 				  indented   continued \\
 				  escaped '''
-				  \\ inline""", tokenList.get(0).getValue());
+				  \\ inline
+				end""", tokenList.get(0).getValue());
 	}
 	
 	@Test
