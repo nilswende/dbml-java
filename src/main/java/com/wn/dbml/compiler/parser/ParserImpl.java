@@ -18,12 +18,13 @@ import static com.wn.dbml.compiler.token.TokenType.*;
  * The default parser implementation.
  */
 public class ParserImpl implements Parser {
-	private final List<RelationshipDefinition> relationshipDefinitions = new ArrayList<>();
+	private List<RelationshipDefinition> relationshipDefinitions;
 	private TokenAccess tokenAccess;
 	private Database database;
 	
 	@Override
 	public Database parse(final Lexer lexer) {
+		relationshipDefinitions = new ArrayList<>();
 		tokenAccess = new TokenAccess(lexer);
 		database = new Database();
 		loop:
