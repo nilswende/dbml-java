@@ -6,7 +6,7 @@
 
     <groupId>io.github.nilswende</groupId>
     <artifactId>dbml-java</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>DBML Parser for the JVM.</description>
