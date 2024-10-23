@@ -57,8 +57,11 @@ public enum TokenType {
 	LINEBREAK,
 	SPACE,
 	_WHITESPACE_STOP,
-	// Literal
+	_LITERAL_START,
 	LITERAL,
+	BLITERAL,
+	NLITERAL,
+	_LITERAL_STOP,
 	SSTRING,
 	DSTRING,
 	TSTRING,
@@ -128,5 +131,12 @@ public enum TokenType {
 	 */
 	public boolean isWhitespace() {
 		return TokenType._WHITESPACE_START.ordinal() < ordinal() && ordinal() < TokenType._WHITESPACE_STOP.ordinal();
+	}
+	
+	/**
+	 * Returns true, if this token represents a literal.
+	 */
+	public boolean isLiteral() {
+		return TokenType._LITERAL_START.ordinal() < ordinal() && ordinal() < TokenType._LITERAL_STOP.ordinal();
 	}
 }

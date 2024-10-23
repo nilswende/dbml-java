@@ -2,7 +2,13 @@ package com.wn.dbml.compiler;
 
 import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
-import com.wn.dbml.model.*;
+import com.wn.dbml.model.Column;
+import com.wn.dbml.model.ColumnSetting;
+import com.wn.dbml.model.Database;
+import com.wn.dbml.model.Name;
+import com.wn.dbml.model.RelationshipSetting;
+import com.wn.dbml.model.Schema;
+import com.wn.dbml.model.TableSetting;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -792,5 +798,53 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("table1");
 		assertEquals("integer", table.getColumn("not").getType());
+	}
+	
+	@Test
+	void testParseColumnDefault() {
+		var dbml = """
+				Table Organization {
+				  organization_id integer [pk]
+				  name varchar [not null]
+				  code varchar [unique, not null]
+				  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+				  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+				  active boolean [default: true]
+				  percent decimal [default: 100.0]
+				  number int [default: 0]
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("Organization");
+		assertEquals("CURRENT_TIMESTAMP", table.getColumn("created_at").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("CURRENT_TIMESTAMP", table.getColumn("updated_at").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("true", table.getColumn("active").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("100.0", table.getColumn("percent").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("0", table.getColumn("number").getSettings().get(ColumnSetting.DEFAULT));
+	}
+	
+	@Test
+	void testParseColumnDefaultInvalid() {
+		var dbml = """
+				Table Organization {
+				  organization_id integer [pk]
+				  number int [default: invalid]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[3:30] unexpected token 'LITERAL'"), e.getMessage());
+	}
+	
+	@Test
+	void testParseColumnDefaultInvalidDecimal() {
+		var dbml = """
+				Table Organization {
+				  organization_id integer [pk]
+				  number int [default: 1.invalid]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[3:24] unexpected token 'LITERAL'"), e.getMessage());
 	}
 }

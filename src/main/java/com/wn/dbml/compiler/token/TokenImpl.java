@@ -23,8 +23,8 @@ public class TokenImpl implements Token {
 	}
 	
 	@Override
-	public Token toLiteral() {
-		return new TokenImpl(TokenType.LITERAL, value);
+	public Token withType(final TokenType tokenType) {
+		return new TokenImpl(tokenType, value);
 	}
 	
 	@Override

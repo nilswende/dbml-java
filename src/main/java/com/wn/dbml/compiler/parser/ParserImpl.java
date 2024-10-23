@@ -5,9 +5,25 @@ import com.wn.dbml.compiler.Parser;
 import com.wn.dbml.compiler.ParsingException;
 import com.wn.dbml.compiler.Position;
 import com.wn.dbml.compiler.token.TokenType;
-import com.wn.dbml.model.*;
+import com.wn.dbml.model.Column;
+import com.wn.dbml.model.ColumnSetting;
+import com.wn.dbml.model.Database;
+import com.wn.dbml.model.EnumValue;
+import com.wn.dbml.model.Index;
+import com.wn.dbml.model.IndexSetting;
+import com.wn.dbml.model.Name;
+import com.wn.dbml.model.Note;
+import com.wn.dbml.model.Project;
+import com.wn.dbml.model.Relation;
+import com.wn.dbml.model.RelationshipSetting;
+import com.wn.dbml.model.Schema;
+import com.wn.dbml.model.Setting;
+import com.wn.dbml.model.SettingHolder;
+import com.wn.dbml.model.Table;
+import com.wn.dbml.model.TableSetting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +202,7 @@ public class ParserImpl implements Parser {
 			case PRIMARY_KEY, PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
 			case UNIQUE -> addSetting(column, ColumnSetting.UNIQUE);
 			case INCREMENT -> addSetting(column, ColumnSetting.INCREMENT);
-			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypes());
+			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypesOr(EXPR, BLITERAL, NLITERAL));
 			case NOTE -> column.setNote(parseInlineNote());
 			case REF -> relationshipDefinitions.add(parseInlineRef(column));
 			default -> throw new IllegalStateException("Unexpected value: " + tokenType());
@@ -535,6 +551,16 @@ public class ParserImpl implements Parser {
 	
 	private TokenType[] stringTypes() {
 		return new TokenType[]{SSTRING, DSTRING, TSTRING};
+	}
+	
+	private TokenType[] stringTypesOr(final TokenType... types) {
+		return types != null && types.length > 0 ? concat(stringTypes(), types) : stringTypes();
+	}
+	
+	private static <T> T[] concat(final T[] first, final T[] second) {
+		var result = Arrays.copyOf(first, first.length + second.length);
+		System.arraycopy(second, 0, result, first.length, second.length);
+		return result;
 	}
 	
 	private void next(final TokenType... types) {
