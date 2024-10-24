@@ -8,7 +8,7 @@ public class Project {
 	private final Map<String, String> properties = new LinkedHashMap<>();
 	private Note note;
 	
-	public Project(final String name) {
+	public Project(String name) {
 		this.name = name;
 	}
 	
@@ -24,7 +24,7 @@ public class Project {
 		return note;
 	}
 	
-	public void setNote(final Note note) {
+	public void setNote(Note note) {
 		this.note = note;
 	}
 	

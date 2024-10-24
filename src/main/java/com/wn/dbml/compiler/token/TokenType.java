@@ -95,11 +95,11 @@ public enum TokenType {
 	 * @param word a word
 	 * @return a keyword or else {@link TokenType#LITERAL}
 	 */
-	public static TokenType of(final String word) {
+	public static TokenType of(String word) {
 		return KEYWORDS.getOrDefault(normalize(word), TokenType.LITERAL);
 	}
 	
-	static String normalize(final String word) {
+	static String normalize(String word) {
 		return word.toUpperCase().replace(TokenType.MULTI_SEPARATOR, TokenType.MULTI_SEPARATOR_ENUM);
 	}
 	
@@ -108,7 +108,7 @@ public enum TokenType {
 	 *
 	 * @param string a string
 	 */
-	public static boolean isMultiSeparator(final String string) {
+	public static boolean isMultiSeparator(String string) {
 		return string.length() == 1 && string.charAt(0) == MULTI_SEPARATOR;
 	}
 	

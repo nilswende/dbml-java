@@ -6,7 +6,7 @@ package com.wn.dbml.compiler;
 public class ParsingException extends RuntimeException {
 	private final Position position;
 	
-	public ParsingException(final Position position, final String msg) {
+	public ParsingException(Position position, String msg) {
 		super(position + " " + msg);
 		this.position = position;
 	}

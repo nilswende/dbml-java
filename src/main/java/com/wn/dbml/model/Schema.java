@@ -12,7 +12,7 @@ public class Schema {
 	private final Set<Enum> enums = new LinkedHashSet<>();
 	private final Set<TableGroup> tableGroups = new LinkedHashSet<>();
 	
-	Schema(final String name) {
+	Schema(String name) {
 		this.name = Objects.requireNonNull(name);
 	}
 	
@@ -20,15 +20,15 @@ public class Schema {
 		return name;
 	}
 	
-	public boolean containsTable(final String tableName) {
+	public boolean containsTable(String tableName) {
 		return getTable(tableName) != null;
 	}
 	
-	public Table getTable(final String tableName) {
+	public Table getTable(String tableName) {
 		return tables.stream().filter(c -> c.getName().equals(tableName)).findAny().orElse(null);
 	}
 	
-	public Table createTable(final String name) {
+	public Table createTable(String name) {
 		var table = new Table(this, name);
 		var added = tables.add(table);
 		return added ? table : null;
@@ -38,15 +38,15 @@ public class Schema {
 		return Collections.unmodifiableSet(tables);
 	}
 	
-	public boolean containsEnum(final String enumName) {
+	public boolean containsEnum(String enumName) {
 		return getEnum(enumName) != null;
 	}
 	
-	public Enum getEnum(final String enumName) {
+	public Enum getEnum(String enumName) {
 		return enums.stream().filter(c -> c.getName().equals(enumName)).findAny().orElse(null);
 	}
 	
-	public Enum createEnum(final String name) {
+	public Enum createEnum(String name) {
 		var anEnum = new Enum(this, name);
 		var added = enums.add(anEnum);
 		return added ? anEnum : null;
@@ -56,15 +56,15 @@ public class Schema {
 		return Collections.unmodifiableSet(enums);
 	}
 	
-	public boolean containsTableGroup(final String tableGroupName) {
+	public boolean containsTableGroup(String tableGroupName) {
 		return getTableGroup(tableGroupName) != null;
 	}
 	
-	public TableGroup getTableGroup(final String tableGroupName) {
+	public TableGroup getTableGroup(String tableGroupName) {
 		return tableGroups.stream().filter(c -> c.getName().equals(tableGroupName)).findAny().orElse(null);
 	}
 	
-	public TableGroup createTableGroup(final String name) {
+	public TableGroup createTableGroup(String name) {
 		var tableGroup = new TableGroup(this, name);
 		var added = tableGroups.add(tableGroup);
 		return added ? tableGroup : null;
@@ -75,7 +75,7 @@ public class Schema {
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final Schema schema = (Schema) o;

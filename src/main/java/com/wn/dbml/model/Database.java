@@ -1,6 +1,11 @@
 package com.wn.dbml.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The top-level representation of a DBML file.
@@ -10,13 +15,13 @@ public class Database {
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
 	private Project project;
 	
-	public Schema getOrCreateSchema(final String name) {
+	public Schema getOrCreateSchema(String name) {
 		var schema = new Schema(name);
 		schemas.putIfAbsent(schema, schema);
 		return schemas.get(schema);
 	}
 	
-	public Schema getSchema(final String name) {
+	public Schema getSchema(String name) {
 		return schemas.get(new Schema(name));
 	}
 	
@@ -24,11 +29,11 @@ public class Database {
 		return Collections.unmodifiableSet(schemas.keySet());
 	}
 	
-	public boolean containsAlias(final String alias) {
+	public boolean containsAlias(String alias) {
 		return getAlias(alias) != null;
 	}
 	
-	public Table getAlias(final String alias) {
+	public Table getAlias(String alias) {
 		return getSchemas().stream()
 				.flatMap(s -> s.getTables().stream())
 				.filter(t -> alias.equals(t.getAlias()))
@@ -36,17 +41,17 @@ public class Database {
 				.orElse(null);
 	}
 	
-	public Relationship createRelationship(final String name, final Relation relation, final List<Column> from, final List<Column> to, Map<RelationshipSetting, String> settings) {
+	public Relationship createRelationship(String name, Relation relation, List<Column> from, List<Column> to, Map<RelationshipSetting, String> settings) {
 		var relationship = new Relationship(name, relation, from, to, settings);
 		var added = relationships.add(relationship);
 		return added ? relationship : null;
 	}
 	
-	public boolean containsRelationship(final String name) {
+	public boolean containsRelationship(String name) {
 		return getRelationship(name) != null;
 	}
 	
-	public Relationship getRelationship(final String name) {
+	public Relationship getRelationship(String name) {
 		return relationships.stream().filter(c -> c.getName().equals(name)).findAny().orElse(null);
 	}
 	
@@ -58,7 +63,7 @@ public class Database {
 		return project;
 	}
 	
-	public void setProject(final Project project) {
+	public void setProject(Project project) {
 		this.project = project;
 	}
 	

@@ -9,21 +9,21 @@ public class TokenImpl implements Token {
 	private final TokenType type;
 	private final String value;
 	
-	public TokenImpl(final TokenType type, final int value) {
+	public TokenImpl(TokenType type, int value) {
 		this(type, value < 0 ? "" : Character.toString(value));
 	}
 	
-	public TokenImpl(final String value) {
+	public TokenImpl(String value) {
 		this(TokenType.of(value), value);
 	}
 	
-	public TokenImpl(final TokenType type, final String value) {
+	public TokenImpl(TokenType type, String value) {
 		this.type = type;
 		this.value = value;
 	}
 	
 	@Override
-	public Token withType(final TokenType tokenType) {
+	public Token withType(TokenType tokenType) {
 		return new TokenImpl(tokenType, value);
 	}
 	

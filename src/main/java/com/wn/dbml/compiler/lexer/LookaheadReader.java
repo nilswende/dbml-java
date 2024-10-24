@@ -2,7 +2,11 @@ package com.wn.dbml.compiler.lexer;
 
 import com.wn.dbml.compiler.Position;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 
 class LookaheadReader {
@@ -11,11 +15,11 @@ class LookaheadReader {
 	private int line = 1, column = 0;
 	private boolean wasLinebreak;
 	
-	public LookaheadReader(final Reader reader) {
+	public LookaheadReader(Reader reader) {
 		this(reader, DEFAULT_LOOKAHEAD_BUFFER_SIZE);
 	}
 	
-	public LookaheadReader(final Reader reader, final int size) {
+	public LookaheadReader(Reader reader, int size) {
 		if (size < DEFAULT_LOOKAHEAD_BUFFER_SIZE) throw new IllegalArgumentException("Cannot decrease the buffer size");
 		var buffered = Objects.requireNonNull(reader) instanceof BufferedReader ? reader : new BufferedReader(reader);
 		this.reader = new PushbackReader(buffered, size);
@@ -58,7 +62,7 @@ class LookaheadReader {
 		return c;
 	}
 	
-	public String lookahead(final int length) {
+	public String lookahead(int length) {
 		var sb = new StringBuilder();
 		for (int i = 0; i < length; i++) {
 			var c = read();
@@ -70,7 +74,7 @@ class LookaheadReader {
 		return chars;
 	}
 	
-	public void pushback(final int c) {
+	public void pushback(int c) {
 		try {
 			reader.unread(c);
 		} catch (IOException e) {
@@ -78,7 +82,7 @@ class LookaheadReader {
 		}
 	}
 	
-	public void pushback(final String chars) {
+	public void pushback(String chars) {
 		try {
 			reader.unread(chars.toCharArray());
 		} catch (IOException e) {

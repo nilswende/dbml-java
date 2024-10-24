@@ -9,11 +9,11 @@ public enum Relation {
 	MANY_TO_MANY("<>");
 	private final String symbol;
 	
-	Relation(final String symbol) {
+	Relation(String symbol) {
 		this.symbol = symbol;
 	}
 	
-	public static Relation of(final String symbol) {
+	public static Relation of(String symbol) {
 		return Arrays.stream(values()).filter(r -> r.symbol.equals(symbol)).findAny().orElse(null);
 	}
 	

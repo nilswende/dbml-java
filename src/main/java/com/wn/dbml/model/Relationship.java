@@ -11,7 +11,7 @@ public class Relationship implements SettingHolder<RelationshipSetting> {
 	private final List<Column> from, to;
 	private final Map<RelationshipSetting, String> settings;
 	
-	Relationship(final String name, final Relation relation, final List<Column> from, final List<Column> to, Map<RelationshipSetting, String> settings) {
+	Relationship(String name, Relation relation, List<Column> from, List<Column> to, Map<RelationshipSetting, String> settings) {
 		this.name = name;
 		this.relation = Objects.requireNonNull(relation);
 		this.from = Objects.requireNonNull(from);
@@ -36,7 +36,7 @@ public class Relationship implements SettingHolder<RelationshipSetting> {
 	}
 	
 	@Override
-	public void addSetting(final RelationshipSetting setting, final String value) {
+	public void addSetting(RelationshipSetting setting, String value) {
 		settings.put(setting, value);
 	}
 	
@@ -45,7 +45,7 @@ public class Relationship implements SettingHolder<RelationshipSetting> {
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final Relationship that = (Relationship) o;

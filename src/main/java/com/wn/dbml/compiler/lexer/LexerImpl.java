@@ -14,11 +14,11 @@ public class LexerImpl extends AbstractLexer {
 	private static final String OUTPUT_LINEBREAK = "\n";
 	private static final String OUTPUT_SPACE = " ";
 	
-	public LexerImpl(final String string) {
+	public LexerImpl(String string) {
 		super(string);
 	}
 	
-	public LexerImpl(final Reader reader) {
+	public LexerImpl(Reader reader) {
 		super(reader);
 	}
 	
@@ -53,7 +53,7 @@ public class LexerImpl extends AbstractLexer {
 		};
 	}
 	
-	private Token nextWord(final int next) {
+	private Token nextWord(int next) {
 		var word = nextWholeWord(next);
 		return KeywordType.of(word) == KeywordType.MULTI
 				? nextMultiKeyword(word)
@@ -62,7 +62,7 @@ public class LexerImpl extends AbstractLexer {
 				: new TokenImpl(word);
 	}
 	
-	private String nextWholeWord(final int next) {
+	private String nextWholeWord(int next) {
 		var sb = new StringBuilder();
 		var c = next;
 		while (true) {
@@ -74,7 +74,7 @@ public class LexerImpl extends AbstractLexer {
 		return sb.toString();
 	}
 	
-	private Token nextMultiKeyword(final String prefix) {
+	private Token nextMultiKeyword(String prefix) {
 		var separatorToken = nextTokenImpl();
 		var separatorValue = separatorToken.getValue();
 		if (!TokenType.isMultiSeparator(separatorValue)) {
@@ -101,7 +101,7 @@ public class LexerImpl extends AbstractLexer {
 		};
 	}
 	
-	private Token nextLTSymbol(final int lt) {
+	private Token nextLTSymbol(int lt) {
 		if (reader.lookahead() == '>') {
 			skipChars(1);
 			return new TokenImpl(TokenType.NE, "<>");
@@ -109,7 +109,7 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(TokenType.LT, lt);
 	}
 	
-	private Token nextString(final int quote) {
+	private Token nextString(int quote) {
 		var lookahead = reader.lookahead(2);
 		if (quote == '\'' && lookahead.startsWith("''")) {
 			skipChars(2);
@@ -119,7 +119,7 @@ public class LexerImpl extends AbstractLexer {
 		}
 	}
 	
-	private Token nextMultiLineString(final String quote, final TokenType tokenType) {
+	private Token nextMultiLineString(String quote, TokenType tokenType) {
 		var multiLineSb = new MultiLineStringBuilder(OUTPUT_LINEBREAK);
 		var sb = new StringBuilder();
 		while (true) {
@@ -153,13 +153,13 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(tokenType, multiLineSb.toString());
 	}
 	
-	private String appendEscaped(final String escaped, final StringBuilder sb) {
+	private String appendEscaped(String escaped, StringBuilder sb) {
 		sb.append(escaped);
 		skipChars(escaped.length());
 		return reader.lookahead(escaped.length());
 	}
 	
-	private Token nextSingleLineString(final int quote) {
+	private Token nextSingleLineString(int quote) {
 		var sb = new StringBuilder();
 		while (true) {
 			var c = reader.nextChar();
@@ -189,17 +189,17 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(type, sb.toString());
 	}
 	
-	private int appendEscaped(final int escaped, final StringBuilder sb) {
+	private int appendEscaped(int escaped, StringBuilder sb) {
 		sb.append((char) escaped);
 		skipChars(1);
 		return reader.lookahead();
 	}
 	
-	private Token nextExpression(final int quote) {
+	private Token nextExpression(int quote) {
 		return nextSingleLineString(quote);
 	}
 	
-	private Token nextComment(final int forwardSlash) {
+	private Token nextComment(int forwardSlash) {
 		var next = reader.lookahead();
 		if (next == '/') {
 			skipChars(1);
@@ -234,7 +234,7 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(TokenType.ILLEGAL, color);
 	}
 	
-	private void skipChars(final int length) {
+	private void skipChars(int length) {
 		for (int i = 0; i < length; i++) {
 			reader.nextChar();
 		}

@@ -17,11 +17,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ParserTest {
 	
-	private Database parse(final String dbml) {
+	private Database parse(String dbml) {
 		return new ParserImpl().parse(new LexerImpl(dbml));
 	}
 	
-	private Schema getDefaultSchema(final Database database) {
+	private Schema getDefaultSchema(Database database) {
 		return database.getSchema(Schema.DEFAULT_NAME);
 	}
 

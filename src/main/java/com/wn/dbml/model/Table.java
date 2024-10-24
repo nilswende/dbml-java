@@ -1,6 +1,11 @@
 package com.wn.dbml.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class Table implements SettingHolder<TableSetting> {
 	private final Schema schema;
@@ -11,7 +16,7 @@ public class Table implements SettingHolder<TableSetting> {
 	private String alias;
 	private Note note;
 	
-	Table(final Schema schema, final String name) {
+	Table(Schema schema, String name) {
 		this.schema = Objects.requireNonNull(schema);
 		this.name = Objects.requireNonNull(name);
 	}
@@ -25,7 +30,7 @@ public class Table implements SettingHolder<TableSetting> {
 	}
 	
 	@Override
-	public void addSetting(final TableSetting setting, final String value) {
+	public void addSetting(TableSetting setting, String value) {
 		settings.put(setting, value);
 	}
 	
@@ -33,15 +38,15 @@ public class Table implements SettingHolder<TableSetting> {
 		return Collections.unmodifiableMap(settings);
 	}
 	
-	public boolean containsColumn(final String columnName) {
+	public boolean containsColumn(String columnName) {
 		return getColumn(columnName) != null;
 	}
 	
-	public Column getColumn(final String columnName) {
+	public Column getColumn(String columnName) {
 		return columns.stream().filter(c -> c.getName().equals(columnName)).findAny().orElse(null);
 	}
 	
-	public Column addColumn(final String columnName, final String datatype) {
+	public Column addColumn(String columnName, String datatype) {
 		var column = new Column(this, columnName, datatype);
 		var added = columns.add(column);
 		return added ? column : null;
@@ -65,7 +70,7 @@ public class Table implements SettingHolder<TableSetting> {
 		return alias;
 	}
 	
-	public void setAlias(final String alias) {
+	public void setAlias(String alias) {
 		this.alias = alias;
 	}
 	
@@ -73,12 +78,12 @@ public class Table implements SettingHolder<TableSetting> {
 		return note;
 	}
 	
-	public void setNote(final Note note) {
+	public void setNote(Note note) {
 		this.note = note;
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final Table table = (Table) o;

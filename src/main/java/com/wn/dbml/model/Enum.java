@@ -10,7 +10,7 @@ public class Enum {
 	private final String name;
 	private final Set<EnumValue> values = new LinkedHashSet<>();
 	
-	Enum(final Schema schema, final String name) {
+	Enum(Schema schema, String name) {
 		this.schema = Objects.requireNonNull(schema);
 		this.name = Objects.requireNonNull(name);
 	}
@@ -23,7 +23,7 @@ public class Enum {
 		return name;
 	}
 	
-	public EnumValue addValue(final String name) {
+	public EnumValue addValue(String name) {
 		var value = new EnumValue(this, name);
 		var added = values.add(value);
 		return added ? value : null;
@@ -34,7 +34,7 @@ public class Enum {
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final Enum anEnum = (Enum) o;

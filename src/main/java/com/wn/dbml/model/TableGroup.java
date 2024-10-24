@@ -11,7 +11,7 @@ public class TableGroup {
 	private final Set<Table> tables = new LinkedHashSet<>();
 	private Note note;
 	
-	TableGroup(final Schema schema, final String name) {
+	TableGroup(Schema schema, String name) {
 		this.schema = Objects.requireNonNull(schema);
 		this.name = Objects.requireNonNull(name);
 	}
@@ -24,7 +24,7 @@ public class TableGroup {
 		return name;
 	}
 	
-	public boolean addTable(final Table table) {
+	public boolean addTable(Table table) {
 		return tables.add(table);
 	}
 	
@@ -41,7 +41,7 @@ public class TableGroup {
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final TableGroup that = (TableGroup) o;

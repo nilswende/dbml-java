@@ -24,11 +24,11 @@ class TokenAccess {
 	private Token token;
 	private boolean ignoreLinebreaks = true, ignoreSpaces = true;
 	
-	TokenAccess(final Lexer lexer) {
+	TokenAccess(Lexer lexer) {
 		this.lexer = Objects.requireNonNull(lexer);
 	}
 	
-	public void next(final TokenType... types) {
+	public void next(TokenType... types) {
 		if (types != null && types.length > 0) {
 			token = nextToken();
 			if (shouldParseAsLiteral(types)) {
@@ -54,7 +54,7 @@ class TokenAccess {
 		return token;
 	}
 	
-	private boolean skipToken(final Token token) {
+	private boolean skipToken(Token token) {
 		return token != null && (
 				// skip
 				token.getType() == COMMENT
@@ -65,13 +65,13 @@ class TokenAccess {
 		);
 	}
 	
-	private boolean shouldParseAsLiteral(TokenType[] types) {
+	private boolean shouldParseAsLiteral(TokenType... types) {
 		return !type().isWhitespace() && !type().isMultiKeyword()
 				&& Arrays.stream(types).noneMatch(this::typeIs)
 				&& Arrays.stream(types).anyMatch(TokenType::isLiteral);
 	}
 	
-	private Token nextLiteral(final TokenType... types) {
+	private Token nextLiteral(TokenType... types) {
 		var typeSet = Set.of(types);
 		if (typeSet.contains(BLITERAL)) {
 			if (Literals.isBooleanLiteral(value())) {
@@ -124,35 +124,35 @@ class TokenAccess {
 		return token.getValue();
 	}
 	
-	public boolean lookaheadTypeIs(final TokenType type) {
+	public boolean lookaheadTypeIs(TokenType type) {
 		return lookahead().getType() == type;
 	}
 	
-	public boolean typeIs(final TokenType type) {
+	public boolean typeIs(TokenType type) {
 		return type() == type;
 	}
 	
-	public boolean typeIs(final TokenType... types) {
+	public boolean typeIs(TokenType... types) {
 		return Arrays.stream(types).anyMatch(this::typeIs);
 	}
 	
-	public void expecting(final Token token, final TokenType... types) {
+	public void expecting(Token token, TokenType... types) {
 		var any = Arrays.stream(types).filter(t -> t == token.getType()).findAny();
 		if (any.isEmpty() && types.length > 0) {
 			expected(types);
 		}
 	}
 	
-	public void expected(final TokenType... types) {
+	public void expected(TokenType... types) {
 		var expected = Arrays.stream(types).map(Objects::toString).collect(Collectors.joining(", "));
 		error("unexpected token '%s', expected %s. Last tokens: %s", type(), expected, lastTokens);
 	}
 	
-	public void error(final String msg, final Object... args) {
+	public void error(String msg, Object... args) {
 		error(String.format(msg, args));
 	}
 	
-	public void error(final String msg) {
+	public void error(String msg) {
 		throw new ParsingException(position(), msg);
 	}
 	
@@ -160,11 +160,11 @@ class TokenAccess {
 		return lookahead.isEmpty() ? lexer.getPosition() : lookahead.peek().position();
 	}
 	
-	public void setIgnoreLinebreaks(final boolean ignoreLinebreaks) {
+	public void setIgnoreLinebreaks(boolean ignoreLinebreaks) {
 		this.ignoreLinebreaks = ignoreLinebreaks;
 	}
 	
-	public void setIgnoreSpaces(final boolean ignoreSpaces) {
+	public void setIgnoreSpaces(boolean ignoreSpaces) {
 		this.ignoreSpaces = ignoreSpaces;
 	}
 	

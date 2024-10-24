@@ -7,13 +7,13 @@ class RingBuffer<E> {
 	private final Deque<E> queue;
 	private final int size;
 	
-	public RingBuffer(final int size) {
+	public RingBuffer(int size) {
 		if (size < 1) throw new IllegalArgumentException("Illegal Size: " + size);
 		queue = new ArrayDeque<>(size);
 		this.size = size;
 	}
 	
-	public void add(final E e) {
+	public void add(E e) {
 		if (queue.size() == size) {
 			poll();
 		}

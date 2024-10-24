@@ -16,7 +16,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class LexerTest {
 	
-	private Lexer getLexer(final String dbml) {
+	private Lexer getLexer(String dbml) {
 		return new LexerImpl(dbml);
 	}
 	
@@ -68,7 +68,7 @@ class LexerTest {
 	
 	@ParameterizedTest
 	@MethodSource
-	void testString(final char quote, final TokenType expectedType) {
+	void testString(char quote, TokenType expectedType) {
 		var str = "test string \\ with unicode 倀";
 		var dbml = quote + str + quote;
 		var lexer = getLexer(dbml);
@@ -234,7 +234,7 @@ class LexerTest {
 	
 	@ParameterizedTest
 	@MethodSource
-	void testColor(final String color, final TokenType expectedType) {
+	void testColor(String color, TokenType expectedType) {
 		var dbml = "#" + color;
 		var lexer = getLexer(dbml);
 		

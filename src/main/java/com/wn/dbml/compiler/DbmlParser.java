@@ -15,7 +15,7 @@ public final class DbmlParser {
      *
      * @param dbml a DBML string
      */
-    public static Database parse(final String dbml) {
+    public static Database parse(String dbml) {
         return new ParserImpl().parse(new LexerImpl(dbml));
     }
 
@@ -24,7 +24,7 @@ public final class DbmlParser {
      *
      * @param dbml a DBML reader
      */
-    public static Database parse(final Reader dbml) {
+    public static Database parse(Reader dbml) {
         return new ParserImpl().parse(new LexerImpl(dbml));
     }
 }

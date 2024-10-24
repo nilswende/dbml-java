@@ -20,7 +20,7 @@ public final class Literals {
 	 * @param value a string
 	 * @return the subtype or else null
 	 */
-	public static TokenType getSubType(final String value) {
+	public static TokenType getSubType(String value) {
 		if (isBooleanLiteral(value)) {
 			return TokenType.BLITERAL;
 		} else if (isNumberLiteral(value)) {
@@ -34,7 +34,7 @@ public final class Literals {
 	 *
 	 * @param value a string
 	 */
-	public static boolean isBooleanLiteral(final String value) {
+	public static boolean isBooleanLiteral(String value) {
 		return value != null && BOOLEAN.contains(value);
 	}
 	
@@ -43,7 +43,7 @@ public final class Literals {
 	 *
 	 * @param value a string
 	 */
-	public static boolean isNumberLiteral(final String value) {
+	public static boolean isNumberLiteral(String value) {
 		return value != null && NUMBER.matcher(value).matches();
 	}
 	
@@ -52,7 +52,7 @@ public final class Literals {
 	 *
 	 * @param value a string
 	 */
-	public static boolean isSubType(final String value) {
+	public static boolean isSubType(String value) {
 		return getSubType(value) != null;
 	}
 }

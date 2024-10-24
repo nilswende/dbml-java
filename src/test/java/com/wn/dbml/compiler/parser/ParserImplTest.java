@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 class ParserImplTest {
 	
-	private Database parse(final String dbml) {
+	private Database parse(String dbml) {
 		return new ParserImpl().parse(new LexerImpl(dbml));
 	}
 	

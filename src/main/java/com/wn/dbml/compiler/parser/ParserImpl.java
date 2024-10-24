@@ -39,7 +39,7 @@ public class ParserImpl implements Parser {
 	private Database database;
 	
 	@Override
-	public Database parse(final Lexer lexer) {
+	public Database parse(Lexer lexer) {
 		relationshipDefinitions = new ArrayList<>();
 		tokenAccess = new TokenAccess(lexer);
 		database = new Database();
@@ -90,7 +90,7 @@ public class ParserImpl implements Parser {
 		database.setProject(project);
 	}
 	
-	private void parseProjectProperty(final Project project) {
+	private void parseProjectProperty(Project project) {
 		var property = tokenValue();
 		next(COLON);
 		next(stringTypes());
@@ -131,7 +131,7 @@ public class ParserImpl implements Parser {
 		return table;
 	}
 	
-	private void parseTableSetting(final Table table) {
+	private void parseTableSetting(Table table) {
 		if (typeIs(HEADERCOLOR)) {
 			addSetting(table, TableSetting.HEADERCOLOR, COLOR);
 		} else if (typeIs(NOTE)) {
@@ -139,7 +139,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseTableBody(final Table table) {
+	private void parseTableBody(Table table) {
 		next(LITERAL);
 		parseColumn(table);
 		loop:
@@ -156,7 +156,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseColumn(final Table table) {
+	private void parseColumn(Table table) {
 		var name = tokenValue();
 		if (table.containsColumn(name)) {
 			error("Column '%s' is already defined", Name.of(table, name));
@@ -196,7 +196,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseColumnSetting(final Column column) {
+	private void parseColumnSetting(Column column) {
 		switch (tokenType()) {
 			case NOT_NULL, NULL -> addSetting(column, ColumnSetting.NOT_NULL);
 			case PRIMARY_KEY, PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
@@ -209,7 +209,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private RelationshipDefinition parseInlineRef(final Column columnFrom) {
+	private RelationshipDefinition parseInlineRef(Column columnFrom) {
 		String name = null;
 		next(LITERAL, DSTRING, COLON); // name
 		if (typeIs(LITERAL, DSTRING)) {
@@ -225,7 +225,7 @@ public class ParserImpl implements Parser {
 				new EnumMap<>(RelationshipSetting.class));
 	}
 	
-	private void parseIndexes(final Table table) {
+	private void parseIndexes(Table table) {
 		next(LBRACE);
 		do {
 			next(LPAREN, LITERAL, EXPR);
@@ -234,7 +234,7 @@ public class ParserImpl implements Parser {
 		next(RBRACE);
 	}
 	
-	private void parseIndex(final Table table) {
+	private void parseIndex(Table table) {
 		try (var ignored = new LinebreakMode()) {
 			var index = table.addIndex();
 			if (typeIs(LPAREN)) {
@@ -264,7 +264,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseIndexColumn(final Table table, final Index index) {
+	private void parseIndexColumn(Table table, Index index) {
 		var columnName = tokenValue();
 		if (typeIs(LITERAL) && !table.containsColumn(columnName)) {
 			error("Column '%s' is not defined", columnName);
@@ -274,7 +274,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseIndexSetting(final Index index) {
+	private void parseIndexSetting(Index index) {
 		switch (tokenType()) {
 			case UNIQUE -> addSetting(index, IndexSetting.UNIQUE);
 			case NAME -> addSetting(index, IndexSetting.NAME, stringTypes());
@@ -384,7 +384,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseEnumSetting(final EnumValue value) {
+	private void parseEnumSetting(EnumValue value) {
 		if (typeIs(NOTE)) {
 			value.setNote(parseInlineNote());
 		} else {
@@ -436,7 +436,7 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private List<Column> validateColumnNames(final RelationshipDefinition definition, final ColumnNames names) {
+	private List<Column> validateColumnNames(RelationshipDefinition definition, ColumnNames names) {
 		var schema = database.getOrCreateSchema(names.schema());
 		if (!schema.containsTable(names.table())) {
 			error(definition, "Table '%s' is not defined", Name.of(schema, names.table()));
@@ -450,7 +450,7 @@ public class ParserImpl implements Parser {
 		return names.columns().stream().map(table::getColumn).toList();
 	}
 	
-	private Table findTable(final TableName tableName) {
+	private Table findTable(TableName tableName) {
 		var table = database.getAlias(tableName.table());
 		if (table == null) {
 			var tableSchema = database.getOrCreateSchema(tableName.schema());
@@ -492,7 +492,7 @@ public class ParserImpl implements Parser {
 		return new ColumnName(schemaName, tableName, columnName);
 	}
 	
-	private ColumnNames parseRefColumnNames(final TokenType... after) {
+	private ColumnNames parseRefColumnNames(TokenType... after) {
 		String schemaName = Schema.DEFAULT_NAME, tableName, columnName;
 		var columnNames = new ArrayList<String>();
 		next(LITERAL, DSTRING); // schemaName, tableName
@@ -521,7 +521,7 @@ public class ParserImpl implements Parser {
 		return new ColumnNames(schemaName, tableName, columnNames);
 	}
 	
-	private void parseRefColumnNames(final List<String> columnNames) {
+	private void parseRefColumnNames(List<String> columnNames) {
 		do {
 			next(LITERAL, DSTRING); // columnName
 			columnNames.add(tokenValue());
@@ -546,7 +546,7 @@ public class ParserImpl implements Parser {
 		return new Note(tokenValue());
 	}
 	
-	private <T extends Setting> void addSetting(final SettingHolder<T> holder, final T setting, final TokenType... types) {
+	private <T extends Setting> void addSetting(SettingHolder<T> holder, T setting, TokenType... types) {
 		if (types != null && types.length > 0) {
 			next(COLON);
 			next(types);
@@ -558,17 +558,17 @@ public class ParserImpl implements Parser {
 		return new TokenType[]{SSTRING, DSTRING, TSTRING};
 	}
 	
-	private TokenType[] stringTypesOr(final TokenType... types) {
+	private TokenType[] stringTypesOr(TokenType... types) {
 		return types != null && types.length > 0 ? concat(stringTypes(), types) : stringTypes();
 	}
 	
-	private static <T> T[] concat(final T[] first, final T[] second) {
+	private static <T> T[] concat(T[] first, T[] second) {
 		var result = Arrays.copyOf(first, first.length + second.length);
 		System.arraycopy(second, 0, result, first.length, second.length);
 		return result;
 	}
 	
-	private void next(final TokenType... types) {
+	private void next(TokenType... types) {
 		tokenAccess.next(types);
 	}
 	
@@ -580,31 +580,31 @@ public class ParserImpl implements Parser {
 		return tokenAccess.value();
 	}
 	
-	private boolean lookaheadTypeIs(final TokenType type) {
+	private boolean lookaheadTypeIs(TokenType type) {
 		return tokenAccess.lookaheadTypeIs(type);
 	}
 	
-	private boolean typeIs(final TokenType type) {
+	private boolean typeIs(TokenType type) {
 		return tokenAccess.typeIs(type);
 	}
 	
-	private boolean typeIs(final TokenType... types) {
+	private boolean typeIs(TokenType... types) {
 		return tokenAccess.typeIs(types);
 	}
 	
-	private void expected(final TokenType... types) {
+	private void expected(TokenType... types) {
 		tokenAccess.expected(types);
 	}
 	
-	private void error(final RelationshipDefinition definition, final String msg, final Object... args) {
+	private void error(RelationshipDefinition definition, String msg, Object... args) {
 		error(definition, String.format(msg, args));
 	}
 	
-	private void error(final RelationshipDefinition definition, final String msg) {
+	private void error(RelationshipDefinition definition, String msg) {
 		throw new ParsingException(definition.position(), msg);
 	}
 	
-	private void error(final String msg, final Object... args) {
+	private void error(String msg, Object... args) {
 		tokenAccess.error(msg, args);
 	}
 	

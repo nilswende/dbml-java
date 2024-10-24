@@ -13,11 +13,11 @@ class MultiLineStringBuilder {
 		this(System.lineSeparator());
 	}
 	
-	public MultiLineStringBuilder(final String linebreak) {
+	public MultiLineStringBuilder(String linebreak) {
 		this.linebreak = linebreak;
 	}
 	
-	public void appendLine(final String line) {
+	public void appendLine(String line) {
 		lines.add(line);
 	}
 	
@@ -29,7 +29,7 @@ class MultiLineStringBuilder {
 		return String.join(linebreak, lines);
 	}
 	
-	private void removeLeadingSpaces(final List<String> lines) {
+	private void removeLeadingSpaces(List<String> lines) {
 		lines.stream()
 				.filter(l -> !l.isBlank())
 				.mapToInt(this::countLeadingSpaces)
@@ -37,7 +37,7 @@ class MultiLineStringBuilder {
 				.ifPresent(minLeadingSpaces -> lines.replaceAll(l -> l.substring(Math.min(minLeadingSpaces, l.length()))));
 	}
 	
-	private int countLeadingSpaces(final String line) {
+	private int countLeadingSpaces(String line) {
 		int i = 0;
 		while (i < line.length() && line.charAt(i) == ' ') {
 			i++;
@@ -45,7 +45,7 @@ class MultiLineStringBuilder {
 		return i;
 	}
 	
-	private List<String> dropSurroundingBlankLines(final List<String> lines) {
+	private List<String> dropSurroundingBlankLines(List<String> lines) {
 		var list = lines;
 		list = dropLeadingBlankLines(list);
 		Collections.reverse(list);
@@ -54,7 +54,7 @@ class MultiLineStringBuilder {
 		return list;
 	}
 	
-	private List<String> dropLeadingBlankLines(final List<String> lines) {
+	private List<String> dropLeadingBlankLines(List<String> lines) {
 		return lines.stream()
 				.dropWhile(String::isBlank)
 				.collect(Collectors.toCollection(ArrayList::new));

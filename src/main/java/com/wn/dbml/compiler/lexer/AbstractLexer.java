@@ -12,11 +12,11 @@ abstract class AbstractLexer implements Lexer {
 	protected final LookaheadReader reader;
 	private boolean ended;
 	
-	public AbstractLexer(final String string) {
+	public AbstractLexer(String string) {
 		this(new StringReader(string));
 	}
 	
-	public AbstractLexer(final Reader reader) {
+	public AbstractLexer(Reader reader) {
 		this.reader = new LookaheadReader(reader);
 	}
 	
@@ -30,7 +30,7 @@ abstract class AbstractLexer implements Lexer {
 		return token;
 	}
 	
-	private boolean isEndToken(final Token token) {
+	private boolean isEndToken(Token token) {
 		var type = token.getType();
 		return type == TokenType.EOF || type == TokenType.ILLEGAL;
 	}

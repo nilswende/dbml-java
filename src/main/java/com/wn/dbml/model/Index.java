@@ -1,6 +1,10 @@
 package com.wn.dbml.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Index implements SettingHolder<IndexSetting> {
@@ -9,7 +13,7 @@ public class Index implements SettingHolder<IndexSetting> {
 	private final Map<IndexSetting, String> settings = new EnumMap<>(IndexSetting.class);
 	private Note note;
 	
-	Index(final Table table) {
+	Index(Table table) {
 		this.table = Objects.requireNonNull(table);
 	}
 	
@@ -17,7 +21,7 @@ public class Index implements SettingHolder<IndexSetting> {
 		return table;
 	}
 	
-	public boolean addColumn(final String column) {
+	public boolean addColumn(String column) {
 		var containsColumn = columns.containsKey(column);
 		if (!containsColumn) {
 			columns.put(column, table.getColumn(column));
@@ -30,7 +34,7 @@ public class Index implements SettingHolder<IndexSetting> {
 	}
 	
 	@Override
-	public void addSetting(final IndexSetting setting, final String value) {
+	public void addSetting(IndexSetting setting, String value) {
 		settings.put(setting, value);
 	}
 	
@@ -42,7 +46,7 @@ public class Index implements SettingHolder<IndexSetting> {
 		return note;
 	}
 	
-	public void setNote(final Note note) {
+	public void setNote(Note note) {
 		this.note = note;
 	}
 	

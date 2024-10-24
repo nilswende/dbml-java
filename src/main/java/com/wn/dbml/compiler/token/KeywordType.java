@@ -39,7 +39,7 @@ public enum KeywordType {
 	 *
 	 * @param word a word
 	 */
-	public static KeywordType of(final String word) {
+	public static KeywordType of(String word) {
 		return KEYWORDS.getOrDefault(TokenType.normalize(word), KeywordType.NO);
 	}
 }

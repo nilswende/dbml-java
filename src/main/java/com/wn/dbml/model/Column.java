@@ -11,7 +11,7 @@ public class Column implements SettingHolder<ColumnSetting> {
 	private final Map<ColumnSetting, String> settings = new EnumMap<>(ColumnSetting.class);
 	private Note note;
 	
-	Column(final Table table, final String name, final String type) {
+	Column(Table table, String name, String type) {
 		this.table = Objects.requireNonNull(table);
 		this.name = Objects.requireNonNull(name);
 		this.type = Objects.requireNonNull(type);
@@ -34,7 +34,7 @@ public class Column implements SettingHolder<ColumnSetting> {
 	}
 	
 	@Override
-	public void addSetting(final ColumnSetting setting, final String value) {
+	public void addSetting(ColumnSetting setting, String value) {
 		settings.put(setting, value);
 	}
 	
@@ -42,12 +42,12 @@ public class Column implements SettingHolder<ColumnSetting> {
 		return note;
 	}
 	
-	public void setNote(final Note note) {
+	public void setNote(Note note) {
 		this.note = note;
 	}
 	
 	@Override
-	public boolean equals(final Object o) {
+	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		final Column column = (Column) o;
