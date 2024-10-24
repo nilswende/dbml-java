@@ -9,6 +9,7 @@ public class TableGroup {
 	private final Schema schema;
 	private final String name;
 	private final Set<Table> tables = new LinkedHashSet<>();
+	private Note note;
 	
 	TableGroup(final Schema schema, final String name) {
 		this.schema = Objects.requireNonNull(schema);
@@ -29,6 +30,14 @@ public class TableGroup {
 	
 	public Set<Table> getTables() {
 		return Collections.unmodifiableSet(tables);
+	}
+	
+	public Note getNote() {
+		return note;
+	}
+	
+	public void setNote(Note note) {
+		this.note = note;
 	}
 	
 	@Override

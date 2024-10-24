@@ -373,6 +373,7 @@ class ParserTest {
 				  table1
 				  table2
 				  C
+				  note: 'group note'
 				}""";
 		var database = parse(dbml);
 		
@@ -384,6 +385,9 @@ class ParserTest {
 		assertTrue(schema.containsTableGroup(tableGroupName));
 		var tables = tableGroup.getTables();
 		assertEquals(3, tables.size());
+		var note = tableGroup.getNote();
+		assertNotNull(note);
+		assertEquals("group note", note.getValue());
 	}
 	
 	@Test

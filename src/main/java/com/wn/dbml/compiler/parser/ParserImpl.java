@@ -401,10 +401,15 @@ public class ParserImpl implements Parser {
 		} else {
 			next(LBRACE);
 			while (true) {
-				var tableName = parseTableName();
-				var table = findTable(tableName);
-				if (!tableGroup.addTable(table)) {
-					error("Table '%s' is already defined", table);
+				if (lookaheadTypeIs(NOTE)) {
+					next(NOTE);
+					tableGroup.setNote(parseNote());
+				} else {
+					var tableName = parseTableName();
+					var table = findTable(tableName);
+					if (!tableGroup.addTable(table)) {
+						error("Table '%s' is already defined", table);
+					}
 				}
 				if (lookaheadTypeIs(RBRACE)) {
 					next(RBRACE);
