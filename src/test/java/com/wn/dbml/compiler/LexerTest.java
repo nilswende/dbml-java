@@ -274,4 +274,29 @@ class LexerTest {
 		assertEquals(List.of(ILLEGAL), types);
 	}
 	
+	@Test
+	void testUmlaut() {
+		var dbml = "table üser {";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(TABLE, SPACE, LITERAL, SPACE, LBRACE, EOF), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(12, lexer.getPosition().column());
+	}
+	
+	@Test
+	void testNonWordChar() {
+		var dbml = "table ü&ser {";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(TABLE, SPACE, LITERAL, ILLEGAL), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(8, lexer.getPosition().column());
+	}
 }

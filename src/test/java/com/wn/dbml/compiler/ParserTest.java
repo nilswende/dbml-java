@@ -851,4 +851,17 @@ class ParserTest {
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertTrue(e.getMessage().startsWith("[3:24] unexpected token 'LITERAL'"), e.getMessage());
 	}
+	
+	@Test
+	void testUmlaut() {
+		var dbml = """
+				Table Üser {
+					name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("Üser");
+		assertNotNull(table);
+	}
 }
