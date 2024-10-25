@@ -8,8 +8,16 @@ public class EnumValue {
 	private Note note;
 	
 	EnumValue(Enum anEnum, String name) {
-		this.anEnum = anEnum;
-		this.name = name;
+		this.anEnum = Objects.requireNonNull(anEnum);
+		this.name = Objects.requireNonNull(name);
+	}
+	
+	public Enum getEnum() {
+		return anEnum;
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 	public Note getNote() {
