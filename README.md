@@ -26,6 +26,8 @@ class Example {
 }
 ```
 
+For a more elaborate example see my [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro).
+
 Maven dependency:
 ```xml
 <dependency>
