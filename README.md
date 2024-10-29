@@ -26,13 +26,13 @@ class Example {
 }
 ```
 
-For a more elaborate example see my [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro).
+For a more elaborate example see the [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro).
 
 Maven dependency:
 ```xml
 <dependency>
     <groupId>io.github.nilswende</groupId>
     <artifactId>dbml-java</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
