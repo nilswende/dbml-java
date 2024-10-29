@@ -12,6 +12,8 @@ import com.wn.dbml.model.EnumValue;
 import com.wn.dbml.model.Index;
 import com.wn.dbml.model.IndexSetting;
 import com.wn.dbml.model.Name;
+import com.wn.dbml.model.NamedNote;
+import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.Note;
 import com.wn.dbml.model.Project;
 import com.wn.dbml.model.Relation;
@@ -47,13 +49,14 @@ public class ParserImpl implements Parser {
 		database = new Database();
 		loop:
 		while (true) {
-			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, EOF);
+			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, NOTE, EOF);
 			switch (tokenType()) {
 				case PROJECT -> parseProject();
 				case TABLE -> parseTable();
 				case REF -> parseRelationship();
 				case ENUM -> parseEnum();
 				case TABLEGROUP -> parseTableGroup();
+				case NOTE -> parseNamedNote();
 				default -> {
 					break loop;
 				}
@@ -434,6 +437,35 @@ public class ParserImpl implements Parser {
 			addSetting(tableGroup, TableGroupSetting.COLOR, COLOR_CODE);
 		} else if (typeIs(NOTE)) {
 			tableGroup.setNote(parseInlineNote());
+		}
+	}
+	
+	private void parseNamedNote() {
+		next(LITERAL, DSTRING);
+		var noteName = tokenValue();
+		var namedNote = database.addNamedNote(noteName);
+		if (namedNote == null) {
+			error("NamedNote '%s' is already defined", noteName);
+		} else {
+			next(LBRACK, LBRACE);
+			if (typeIs(LBRACK)) {
+				do {
+					next(HEADERCOLOR);
+					parseNamedNoteSetting(namedNote);
+					next(COMMA, RBRACK);
+				} while (!typeIs(RBRACK));
+				next(LBRACE);
+			}
+			next(stringTypes());
+			var value = tokenValue();
+			namedNote.setValue(value);
+			next(RBRACE);
+		}
+	}
+	
+	private void parseNamedNoteSetting(NamedNote namedNote) {
+		if (typeIs(HEADERCOLOR)) {
+			addSetting(namedNote, NamedNoteSetting.HEADERCOLOR, COLOR_CODE);
 		}
 	}
 	

@@ -13,6 +13,7 @@ import java.util.Set;
 public class Database {
 	private final Map<Schema, Schema> schemas = new LinkedHashMap<>();
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
+	private final Map<NamedNote, NamedNote> namedNotes = new LinkedHashMap<>();
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
@@ -59,6 +60,20 @@ public class Database {
 		return Collections.unmodifiableSet(relationships);
 	}
 	
+	public NamedNote addNamedNote(String name) {
+		var namedNote = new NamedNote(name);
+		var added = namedNotes.putIfAbsent(namedNote, namedNote) == null;
+		return added ? namedNote : null;
+	}
+	
+	public NamedNote getNamedNote(String name) {
+		return namedNotes.get(new NamedNote(name));
+	}
+	
+	public Set<NamedNote> getNamedNotes() {
+		return new LinkedHashSet<>(namedNotes.values());
+	}
+	
 	public Project getProject() {
 		return project;
 	}
@@ -70,9 +85,10 @@ public class Database {
 	@Override
 	public String toString() {
 		return "Database{" +
-			   "schemas=" + schemas +
-			   ", relationships=" + relationships +
-			   ", project=" + project +
-			   '}';
+				"schemas=" + schemas +
+				", relationships=" + relationships +
+				", namedNotes=" + namedNotes +
+				", project=" + project +
+				'}';
 	}
 }

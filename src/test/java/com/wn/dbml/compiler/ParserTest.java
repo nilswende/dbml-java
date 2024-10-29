@@ -6,6 +6,7 @@ import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
 import com.wn.dbml.model.Name;
+import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.RelationshipSetting;
 import com.wn.dbml.model.Schema;
 import com.wn.dbml.model.TableSetting;
@@ -24,7 +25,7 @@ class ParserTest {
 	private Schema getDefaultSchema(Database database) {
 		return database.getSchema(Schema.DEFAULT_NAME);
 	}
-
+	
 	@Test
 	void testParseTwice() {
 		var dbml = """
@@ -39,17 +40,17 @@ class ParserTest {
 				}
 				
 				Ref r1: schema2.table2.column2 - schema1.table1.column1""";
-        var parser = new ParserImpl();
-
+		var parser = new ParserImpl();
+		
 		var database = parser.parse(new LexerImpl(dbml));
 		var relationships = database.getRelationships();
 		assertEquals(1, relationships.size());
-
+		
 		database = parser.parse(new LexerImpl(dbml));
 		relationships = database.getRelationships();
 		assertEquals(1, relationships.size());
 	}
-
+	
 	@Test
 	void testParseProject() {
 		var dbml = """
@@ -863,5 +864,58 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("Üser");
 		assertNotNull(table);
+	}
+	
+	@Test
+	void testNamedNote() {
+		var dbml = """
+				Table table1 {
+				  table integer
+				}
+				
+				Note single_line_note {
+				  'This is a single line note'
+				}
+				
+				Note multiple_lines_note [headercolor: #fff] {
+				'''
+				  This is a multiple lines note
+				  This string can spans over multiple lines.
+				'''
+				}""";
+		var database = parse(dbml);
+		
+		var namedNotes = database.getNamedNotes();
+		assertEquals(2, namedNotes.size());
+		var singleLineNote = database.getNamedNote("single_line_note");
+		assertNotNull(singleLineNote);
+		assertEquals("This is a single line note", singleLineNote.getValue());
+		assertNull(singleLineNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
+		var multipleLinesNote = database.getNamedNote("multiple_lines_note");
+		assertNotNull(multipleLinesNote);
+		assertEquals("""
+						This is a multiple lines note
+						This string can spans over multiple lines.""",
+				multipleLinesNote.getValue());
+		assertEquals("fff", multipleLinesNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
+	}
+	
+	@Test
+	void testNamedNoteExisting() {
+		var dbml = """
+				Table table1 {
+				  table integer
+				}
+				
+				Note single_line_note {
+				  'This is a single line note'
+				}
+				
+				Note single_line_note {
+				  'This is a duplicate note'
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[9:21] NamedNote 'single_line_note' is already defined", e.getMessage());
 	}
 }
