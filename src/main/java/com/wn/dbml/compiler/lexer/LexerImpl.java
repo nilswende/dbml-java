@@ -224,7 +224,7 @@ public class LexerImpl extends AbstractLexer {
 	private Token nextColor() {
 		var lookahead = reader.lookahead(6);
 		var color = lookahead.codePoints()
-				.takeWhile(i -> !Character.isWhitespace(i))
+				.takeWhile(Char::isHexDigit)
 				.collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
 				.toString();
 		if ((color.length() == 6 || color.length() == 3) && color.chars().allMatch(Char::isHexDigit)) {
