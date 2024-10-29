@@ -369,11 +369,11 @@ class ParserTest {
 				  id integer
 				}
 				
-				TableGroup a.tablegroup_name {
+				TableGroup a.tablegroup_name [color: #fff, note: "group note attr"] {
 				  table1
 				  table2
 				  C
-				  note: 'group note'
+				  note: 'group note element'
 				}""";
 		var database = parse(dbml);
 		
@@ -387,7 +387,7 @@ class ParserTest {
 		assertEquals(3, tables.size());
 		var note = tableGroup.getNote();
 		assertNotNull(note);
-		assertEquals("group note", note.getValue());
+		assertEquals("group note element", note.getValue());
 	}
 	
 	@Test

@@ -241,7 +241,7 @@ class LexerTest {
 		var tokenList = lexer.tokenList();
 		var types = tokenList.stream().map(Token::getType).toList();
 		
-		if (expectedType == COLOR) {
+		if (expectedType == COLOR_CODE) {
 			assertEquals(List.of(expectedType, EOF), types);
 			assertEquals(color, tokenList.get(0).getValue());
 		} else {
@@ -258,8 +258,8 @@ class LexerTest {
 				arguments("xxxxxx", ILLEGAL),
 				arguments("1 ab", ILLEGAL),
 				arguments("1a b2cd", ILLEGAL),
-				arguments("1ab", COLOR),
-				arguments("1ab2cd", COLOR)
+				arguments("1ab", COLOR_CODE),
+				arguments("1ab2cd", COLOR_CODE)
 		);
 	}
 	

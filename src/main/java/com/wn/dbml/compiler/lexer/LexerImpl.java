@@ -48,7 +48,7 @@ public class LexerImpl extends AbstractLexer {
 			case '"' -> nextSingleLineString(next);
 			case '`' -> nextExpression(next);
 			case '/' -> nextComment(next);
-			case '#' -> nextColor();
+			case '#' -> nextColorCode();
 			default -> new TokenImpl(TokenType.ILLEGAL, next);
 		};
 	}
@@ -221,7 +221,7 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(TokenType.COMMENT, sb.toString());
 	}
 	
-	private Token nextColor() {
+	private Token nextColorCode() {
 		var lookahead = reader.lookahead(6);
 		var color = lookahead.codePoints()
 				.takeWhile(Char::isHexDigit)
@@ -229,7 +229,7 @@ public class LexerImpl extends AbstractLexer {
 				.toString();
 		if ((color.length() == 6 || color.length() == 3) && color.chars().allMatch(Char::isHexDigit)) {
 			skipChars(color.length());
-			return new TokenImpl(TokenType.COLOR, color);
+			return new TokenImpl(TokenType.COLOR_CODE, color);
 		}
 		return new TokenImpl(TokenType.ILLEGAL, color);
 	}

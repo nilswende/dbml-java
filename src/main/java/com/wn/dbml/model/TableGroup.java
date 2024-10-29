@@ -1,13 +1,16 @@
 package com.wn.dbml.model;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class TableGroup {
+public class TableGroup implements SettingHolder<TableGroupSetting> {
 	private final Schema schema;
 	private final String name;
+	private final Map<TableGroupSetting, String> settings = new EnumMap<>(TableGroupSetting.class);
 	private final Set<Table> tables = new LinkedHashSet<>();
 	private Note note;
 	
@@ -22,6 +25,15 @@ public class TableGroup {
 	
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public void addSetting(TableGroupSetting setting, String value) {
+		settings.put(setting, value);
+	}
+	
+	public Map<TableGroupSetting, String> getSettings() {
+		return Collections.unmodifiableMap(settings);
 	}
 	
 	public boolean addTable(Table table) {

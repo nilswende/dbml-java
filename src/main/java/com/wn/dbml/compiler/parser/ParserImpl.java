@@ -20,6 +20,8 @@ import com.wn.dbml.model.Schema;
 import com.wn.dbml.model.Setting;
 import com.wn.dbml.model.SettingHolder;
 import com.wn.dbml.model.Table;
+import com.wn.dbml.model.TableGroup;
+import com.wn.dbml.model.TableGroupSetting;
 import com.wn.dbml.model.TableSetting;
 
 import java.util.ArrayList;
@@ -133,7 +135,7 @@ public class ParserImpl implements Parser {
 	
 	private void parseTableSetting(Table table) {
 		if (typeIs(HEADERCOLOR)) {
-			addSetting(table, TableSetting.HEADERCOLOR, COLOR);
+			addSetting(table, TableSetting.HEADERCOLOR, COLOR_CODE);
 		} else if (typeIs(NOTE)) {
 			table.setNote(parseInlineNote());
 		}
@@ -399,7 +401,15 @@ public class ParserImpl implements Parser {
 		if (tableGroup == null) {
 			error("TableGroup '%s' is already defined", tableGroupName);
 		} else {
-			next(LBRACE);
+			next(LBRACK, LBRACE);
+			if (typeIs(LBRACK)) {
+				do {
+					next(COLOR, NOTE);
+					parseTableGroupSetting(tableGroup);
+					next(COMMA, RBRACK);
+				} while (!typeIs(RBRACK));
+				next(LBRACE);
+			}
 			while (true) {
 				if (lookaheadTypeIs(NOTE)) {
 					next(NOTE);
@@ -416,6 +426,14 @@ public class ParserImpl implements Parser {
 					break;
 				}
 			}
+		}
+	}
+	
+	private void parseTableGroupSetting(TableGroup tableGroup) {
+		if (typeIs(COLOR)) {
+			addSetting(tableGroup, TableGroupSetting.COLOR, COLOR_CODE);
+		} else if (typeIs(NOTE)) {
+			tableGroup.setNote(parseInlineNote());
 		}
 	}
 	

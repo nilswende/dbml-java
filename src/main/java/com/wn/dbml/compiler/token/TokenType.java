@@ -19,6 +19,7 @@ public enum TokenType {
 	ENUM,
 	TABLEGROUP,
 	HEADERCOLOR,
+	COLOR,
 	NOTE,
 	PRIMARY_KEY,
 	PK,
@@ -66,7 +67,7 @@ public enum TokenType {
 	DSTRING,
 	TSTRING,
 	EXPR,
-	COLOR,
+	COLOR_CODE,
 	COMMENT,
 	// Misc
 	EOF,
