@@ -227,8 +227,9 @@ public class LexerImpl extends AbstractLexer {
 				.takeWhile(Char::isHexDigit)
 				.collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
 				.toString();
-		if ((color.length() == 6 || color.length() == 3) && color.chars().allMatch(Char::isHexDigit)) {
-			skipChars(color.length());
+		var length = color.length();
+		if (length == 6 || length == 3) {
+			skipChars(length);
 			return new TokenImpl(TokenType.COLOR_CODE, color);
 		}
 		return new TokenImpl(TokenType.ILLEGAL, color);
