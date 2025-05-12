@@ -180,25 +180,20 @@ public class ParserImpl implements Parser {
 	}
 	
 	private String parseColumnDatatype() {
-		try (var ignored = new SpaceMode()) {
-			next(SPACE);
-			next(LITERAL, DSTRING); // datatype
-			var datatype = new StringBuilder(tokenValue());
-			if (typeIs(LITERAL)) {
-				do {
-					next(LITERAL, SPACE, LINEBREAK);
-					if (typeIs(LITERAL)) {
-						datatype.append(tokenValue());
-					}
-				} while (!typeIs(SPACE, LINEBREAK));
-			} else if (typeIs(DSTRING)) {
-				next(SPACE);
-			}
-			if (!typeIs(LINEBREAK)) {
-				next(LBRACK, LINEBREAK);
-			}
-			return datatype.toString();
+		next(LITERAL, DSTRING); // datatype name
+		var datatype = new StringBuilder(tokenValue());
+		if (lookaheadTypeIs(LPAREN)) {
+			next(LPAREN);
+			datatype.append(tokenValue());
+			do {
+				next(LITERAL, RPAREN, SPACE, LINEBREAK);
+				if (typeIs(LITERAL, RPAREN)) {
+					datatype.append(tokenValue());
+				}
+			} while (!typeIs(RPAREN, LINEBREAK));
 		}
+		next(LBRACK, LINEBREAK);
+		return datatype.toString();
 	}
 	
 	private void parseColumnSetting(Column column) {

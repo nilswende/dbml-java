@@ -244,6 +244,53 @@ class ParserTest {
 	}
 	
 	@Test
+	void testColumnDatatypeLiteralArgs() {
+		var dbml = """
+				Table bill_of_materials {
+				  quantity DECIMAL(10, 2)
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("bill_of_materials");
+		assertNotNull(table);
+	}
+	
+	@Test
+	void testColumnDatatypeDStringArgs() {
+		var dbml = """
+				Table bill_of_materials {
+				  quantity "DECIMAL"(10,2)
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("bill_of_materials");
+		assertNotNull(table);
+	}
+	
+	@Test
+	void testColumnDatatypeArgsWithSetting() {
+		var dbml = """
+				Table bill_of_materials {
+				  quantity DECIMAL(10, 2) [not null]
+				  unit VARCHAR(32)
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("bill_of_materials");
+		assertNotNull(table);
+		var quantity = table.getColumn("quantity");
+		assertNotNull(quantity);
+		var setting = quantity.getSettings().get(ColumnSetting.NOT_NULL);
+		assertNotNull(setting);
+		var unit = table.getColumn("unit");
+		assertNotNull(unit);
+		
+	}
+	
+	@Test
 	void testParseIndexes() {
 		var dbml = """
 				Table bookings {
