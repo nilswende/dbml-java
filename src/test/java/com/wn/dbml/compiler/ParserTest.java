@@ -658,7 +658,7 @@ class ParserTest {
 				}
 				
 				Ref {
-				  table2.column2 < table1.column1 [update: set null, delete: cascade]
+				  table2.column2 < table1.column1 [update: set null, delete: cascade, color: #aabbcc]
 				}""";
 		var database = parse(dbml);
 		
@@ -669,11 +669,13 @@ class ParserTest {
 		validateRefColumn(ref.getFrom(), 1, "table2.column2");
 		validateRefColumn(ref.getTo(), 1, "table1.column1");
 		var settings = ref.getSettings();
-		assertEquals(2, settings.size());
+		assertEquals(3, settings.size());
 		var update = settings.get(RelationshipSetting.UPDATE);
 		assertEquals("set null", update);
 		var delete = settings.get(RelationshipSetting.DELETE);
 		assertEquals("cascade", delete);
+		var color = settings.get(RelationshipSetting.COLOR);
+		assertEquals("aabbcc", color);
 	}
 	
 	@Test

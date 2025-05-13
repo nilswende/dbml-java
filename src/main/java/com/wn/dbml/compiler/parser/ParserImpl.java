@@ -338,10 +338,15 @@ public class ParserImpl implements Parser {
 		if (lookaheadTypeIs(LBRACK)) {
 			next(LBRACK);
 			do {
-				next(DELETE, UPDATE);
+				next(DELETE, UPDATE, COLOR);
 				var setting = RelationshipSetting.valueOf(tokenType().name());
-				next(COLON);
-				next(CASCADE, RESTRICT, SET_NULL, SET_DEFAULT, NO_ACTION);
+				if (typeIs(COLOR)) {
+					next(COLON);
+					next(COLOR_CODE);
+				} else {
+					next(COLON);
+					next(CASCADE, RESTRICT, SET_NULL, SET_DEFAULT, NO_ACTION);
+				}
 				map.put(setting, tokenValue());
 				next(COMMA, RBRACK);
 			} while (!typeIs(RBRACK));
