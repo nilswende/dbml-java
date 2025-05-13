@@ -72,6 +72,45 @@ class ParserTest {
 	}
 	
 	@Test
+	void testParseProjectWithOthers() {
+		var dbml = """
+				Project project_name {
+				}
+				
+				Table t1 {
+				  id integer
+				}
+				Table t2 {
+				  id integer
+				}
+				
+				Ref: t1.id - t2.id
+				
+				TableGroup tbls {
+				  t1
+				  t2
+				}
+				
+				Enum e {
+				  val1
+				  val2
+				  val3
+				}""";
+		var database = parse(dbml);
+		
+		assertNotNull(database.getProject());
+		var project = database.getProject();
+		assertEquals("project_name", project.getName());
+		var schema = database.getSchema(Schema.DEFAULT_NAME);
+		assertNotNull(schema);
+		assertTrue(schema.containsTable("t1"));
+		assertTrue(schema.containsTable("t2"));
+		assertEquals(1, database.getRelationships().size());
+		assertEquals(1, schema.getTableGroups().size());
+		assertEquals(1, schema.getEnums().size());
+	}
+	
+	@Test
 	void testParseProjectLongForm() {
 		var dbml = """
 				Project project_name {
@@ -95,18 +134,9 @@ class ParserTest {
 				    val3
 				  }
 				}""";
-		var database = parse(dbml);
 		
-		assertNotNull(database.getProject());
-		var project = database.getProject();
-		assertEquals("project_name", project.getName());
-		var schema = database.getSchema(Schema.DEFAULT_NAME);
-		assertNotNull(schema);
-		assertTrue(schema.containsTable("t1"));
-		assertTrue(schema.containsTable("t2"));
-		assertEquals(1, database.getRelationships().size());
-		assertEquals(1, schema.getTableGroups().size());
-		assertEquals(1, schema.getEnums().size());
+		// was possible once, but not anymore
+		assertThrows(ParsingException.class, () -> parse(dbml));
 	}
 	
 	@Test
@@ -186,6 +216,29 @@ class ParserTest {
 	}
 	
 	@Test
+	void testParseTableSettings() {
+		var dbml = """
+				Table users [note: 'User data'] {
+				  id int [pk, increment, note: 'Primary key']
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		var usersNote = users.getNote();
+		assertNotNull(usersNote);
+		assertEquals("User data", usersNote.getValue());
+		var id = users.getColumn("id");
+		assertNotNull(id);
+		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
+		assertNotNull(id.getSettings().get(ColumnSetting.INCREMENT));
+		var idNote = id.getNote();
+		assertNotNull(idNote);
+		assertEquals("Primary key", idNote.getValue());
+	}
+	
+	@Test
 	void testParseComplexColumnDatatype() {
 		var dbml = """
 				Table users {
@@ -196,9 +249,19 @@ class ParserTest {
 		var database = parse(dbml);
 		
 		var schema = getDefaultSchema(database);
-		var table = schema.getTable("users");
-		assertEquals("char(8)", table.getColumn("id").getType());
-		assertEquals("varchar(255)", table.getColumn("username").getType());
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		var id = users.getColumn("id");
+		assertNotNull(id);
+		assertEquals("char(8)", id.getType());
+		var username = users.getColumn("username");
+		assertNotNull(username);
+		assertEquals("varchar(255)", username.getType());
+		assertNotNull(username.getSettings().get(ColumnSetting.NOT_NULL));
+		assertNotNull(username.getSettings().get(ColumnSetting.UNIQUE));
+		var usersNote = users.getNote();
+		assertNotNull(usersNote);
+		assertEquals("Stores user data", usersNote.getValue());
 	}
 	
 	@Test

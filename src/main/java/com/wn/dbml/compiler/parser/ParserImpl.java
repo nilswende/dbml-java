@@ -79,12 +79,8 @@ public class ParserImpl implements Parser {
 		var project = new Project(name);
 		loop:
 		while (true) {
-			next(TABLE, REF, ENUM, TABLEGROUP, LITERAL, NOTE, RBRACE);
+			next(LITERAL, NOTE, RBRACE);
 			switch (tokenType()) {
-				case TABLE -> parseTable();
-				case REF -> parseRelationship();
-				case ENUM -> parseEnum();
-				case TABLEGROUP -> parseTableGroup();
 				case LITERAL -> parseProjectProperty(project);
 				case NOTE -> project.setNote(parseNote());
 				default -> {
