@@ -965,4 +965,43 @@ class ParserTest {
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertEquals("[9:21] NamedNote 'single_line_note' is already defined", e.getMessage());
 	}
+	
+	@Test
+	void testOptionalRelationships() {
+		var dbml = """
+				Table follows {
+				  following_user_id int [ref: > users.id] // optional, many-to-zero relationship
+				  followed_user_id int [ref: > users.id, null] // optional, many-to-zero relationship
+				}
+				
+				Table posts {
+				  id int [pk]
+				  user_id int [ref: > users.id, not null] // mandatory, many-to-one relationship
+				}
+				
+				Table users {
+				  id integer [primary key]
+				  username varchar
+				}""";
+		var database = parse(dbml);
+		
+		var relationships = database.getRelationships();
+		assertEquals(3, relationships.size());
+		
+		var schema = getDefaultSchema(database);
+		var follows = schema.getTable("follows");
+		assertNotNull(follows);
+		var followingUserId = follows.getColumn("following_user_id");
+		assertNotNull(followingUserId);
+		assertNull(followingUserId.getSettings().get(ColumnSetting.NOT_NULL));
+		var followedUserId = follows.getColumn("followed_user_id");
+		assertNotNull(followedUserId);
+		assertNull(followedUserId.getSettings().get(ColumnSetting.NOT_NULL));
+		
+		var posts = schema.getTable("posts");
+		assertNotNull(posts);
+		var userId = posts.getColumn("user_id");
+		assertNotNull(userId);
+		assertNotNull(userId.getSettings().get(ColumnSetting.NOT_NULL));
+	}
 }

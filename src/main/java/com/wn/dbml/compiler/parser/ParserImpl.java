@@ -198,7 +198,9 @@ public class ParserImpl implements Parser {
 	
 	private void parseColumnSetting(Column column) {
 		switch (tokenType()) {
-			case NOT_NULL, NULL -> addSetting(column, ColumnSetting.NOT_NULL);
+			case NOT_NULL -> addSetting(column, ColumnSetting.NOT_NULL);
+			case NULL -> {
+			} // ignore
 			case PRIMARY_KEY, PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
 			case UNIQUE -> addSetting(column, ColumnSetting.UNIQUE);
 			case INCREMENT -> addSetting(column, ColumnSetting.INCREMENT);
