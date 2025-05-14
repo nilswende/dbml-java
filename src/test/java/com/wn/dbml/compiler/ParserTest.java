@@ -1107,6 +1107,7 @@ class ParserTest {
 				  id int [pk, not null]
 				  created_at timestamp [default: `now()`]
 				  updated_at timestamp [default: `now()`]
+				  note: "base note"
 				}
 				
 				TablePartial soft_delete_template {
@@ -1148,6 +1149,9 @@ class ParserTest {
 		assertEquals("varchar", name.getType());
 		var emailIndex = users.getIndex("U__email");
 		assertNotNull(emailIndex);
+		var note = users.getNote();
+		assertNotNull(note);
+		assertEquals("base note", note.getValue());
 	}
 	
 	@Test

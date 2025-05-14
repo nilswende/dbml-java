@@ -40,6 +40,8 @@ public class Table implements SettingHolder<TableSetting> {
 		for (var index : other.indexes) {
 			this.indexes.add(index.to(this));
 		}
+		// note
+		this.note = other.note;
 	}
 	
 	public Schema getSchema() {
