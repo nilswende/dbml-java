@@ -21,6 +21,27 @@ public class Table implements SettingHolder<TableSetting> {
 		this.name = Objects.requireNonNull(name);
 	}
 	
+	public void inject(Table other) {
+		Objects.requireNonNull(other);
+		// settings
+		for (var entry : other.settings.entrySet()) {
+			var setting = entry.getKey();
+			if (!this.settings.containsKey(setting)) {
+				addSetting(setting, entry.getValue());
+			}
+		}
+		// columns
+		for (var column : other.columns) {
+			if (!containsColumn(column.getName())) {
+				this.columns.add(column.to(this));
+			}
+		}
+		// indexes
+		for (var index : other.indexes) {
+			this.indexes.add(index.to(this));
+		}
+	}
+	
 	public Schema getSchema() {
 		return schema;
 	}
@@ -54,6 +75,11 @@ public class Table implements SettingHolder<TableSetting> {
 	
 	public Set<Column> getColumns() {
 		return Collections.unmodifiableSet(columns);
+	}
+	
+	public Index getIndex(String indexName) {
+		return indexName == null ? null
+				: indexes.stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findAny().orElse(null);
 	}
 	
 	public Index addIndex() {

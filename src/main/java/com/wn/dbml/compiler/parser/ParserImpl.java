@@ -28,7 +28,10 @@ import com.wn.dbml.model.TableSetting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -39,29 +42,35 @@ import static com.wn.dbml.compiler.token.TokenType.*;
  */
 public class ParserImpl implements Parser {
 	private List<RelationshipDefinition> relationshipDefinitions;
+	private Schema tablePartialsSchema;
+	private Map<Table, LinkedHashSet<String>> tablePartialRefs;
 	private TokenAccess tokenAccess;
 	private Database database;
 	
 	@Override
 	public Database parse(Lexer lexer) {
 		relationshipDefinitions = new ArrayList<>();
+		tablePartialsSchema = new Database().getOrCreateSchema(Schema.DEFAULT_NAME);
+		tablePartialRefs = new HashMap<>();
 		tokenAccess = new TokenAccess(lexer);
 		database = new Database();
 		loop:
 		while (true) {
-			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, NOTE, EOF);
+			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, TABLEPARTIAL, NOTE, EOF);
 			switch (tokenType()) {
 				case PROJECT -> parseProject();
 				case TABLE -> parseTable();
 				case REF -> parseRelationship();
 				case ENUM -> parseEnum();
 				case TABLEGROUP -> parseTableGroup();
+				case TABLEPARTIAL -> parseTablePartial();
 				case NOTE -> parseNamedNote();
 				default -> {
 					break loop;
 				}
 			}
 		}
+		injectTablePartials();
 		createRelationships();
 		return database;
 	}
@@ -106,6 +115,10 @@ public class ParserImpl implements Parser {
 	private Table parseTableHead() {
 		var tableName = parseTableName();
 		var schema = database.getOrCreateSchema(tableName.schema());
+		return parseTableHead(schema, tableName);
+	}
+	
+	private Table parseTableHead(Schema schema, TableName tableName) {
 		var table = schema.createTable(tableName.table());
 		if (table == null) {
 			error("Table '%s' is already defined", tableName);
@@ -141,19 +154,33 @@ public class ParserImpl implements Parser {
 	}
 	
 	private void parseTableBody(Table table) {
-		next(LITERAL);
-		parseColumn(table);
+		next(LITERAL, DSTRING, TILDE);
+		if (typeIs(TILDE)) {
+			parseTablePartialRef(table);
+		} else {
+			parseColumn(table);
+		}
 		loop:
 		while (true) {
-			next(LITERAL, DSTRING, INDEXES, NOTE, RBRACE);
+			next(LITERAL, DSTRING, TILDE, INDEXES, NOTE, RBRACE);
 			switch (tokenType()) {
 				case LITERAL, DSTRING -> parseColumn(table);
+				case TILDE -> parseTablePartialRef(table);
 				case INDEXES -> parseIndexes(table);
 				case NOTE -> table.setNote(parseNote());
 				default -> {
 					break loop;
 				}
 			}
+		}
+	}
+	
+	private void parseTablePartialRef(Table table) {
+		next(LITERAL);
+		var ref = tokenValue();
+		var added = tablePartialRefs.computeIfAbsent(table, x -> new LinkedHashSet<>()).add(ref);
+		if (!added) {
+			error("Duplicate injection %s", ref);
 		}
 	}
 	
@@ -177,19 +204,21 @@ public class ParserImpl implements Parser {
 	
 	private String parseColumnDatatype() {
 		next(LITERAL, DSTRING); // datatype name
-		var datatype = new StringBuilder(tokenValue());
+		var datatype = tokenValue();
 		if (lookaheadTypeIs(LPAREN)) {
 			next(LPAREN);
-			datatype.append(tokenValue());
+			var sb = new StringBuilder(datatype);
+			sb.append(tokenValue());
 			do {
 				next(LITERAL, RPAREN, SPACE, LINEBREAK);
 				if (typeIs(LITERAL, RPAREN)) {
-					datatype.append(tokenValue());
+					sb.append(tokenValue());
 				}
 			} while (!typeIs(RPAREN, LINEBREAK));
+			datatype = sb.toString();
 		}
 		next(LBRACK, LINEBREAK);
-		return datatype.toString();
+		return datatype;
 	}
 	
 	private void parseColumnSetting(Column column) {
@@ -438,6 +467,14 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
+	private void parseTablePartial() {
+		next(LITERAL, DSTRING); // name
+		var schema = tablePartialsSchema;
+		var tableName = new TableName(schema.getName(), tokenValue());
+		var table = parseTableHead(schema, tableName);
+		parseTableBody(table);
+	}
+	
 	private void parseNamedNote() {
 		next(LITERAL, DSTRING);
 		var noteName = tokenValue();
@@ -464,6 +501,23 @@ public class ParserImpl implements Parser {
 	private void parseNamedNoteSetting(NamedNote namedNote) {
 		if (typeIs(HEADERCOLOR)) {
 			addSetting(namedNote, NamedNoteSetting.HEADERCOLOR, COLOR_CODE);
+		}
+	}
+	
+	private void injectTablePartials() {
+		tablePartialRefs.keySet().forEach(this::injectTablePartial);
+	}
+	
+	private void injectTablePartial(Table table) {
+		if (!tablePartialRefs.containsKey(table)) {
+			return;
+		}
+		var refList = new ArrayList<>(tablePartialRefs.get(table));
+		Collections.reverse(refList);
+		for (var ref : refList) { // Java 21: tablePartialRefs.reversed()
+			var partial = tablePartialsSchema.getTable(ref);
+			injectTablePartial(partial);
+			table.inject(partial);
 		}
 	}
 	

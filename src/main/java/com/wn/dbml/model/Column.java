@@ -17,6 +17,13 @@ public class Column implements SettingHolder<ColumnSetting> {
 		this.type = Objects.requireNonNull(type);
 	}
 	
+	Column to(Table other) {
+		var column = new Column(other, name, type);
+		column.settings.putAll(this.settings);
+		column.note = this.note;
+		return column;
+	}
+	
 	public Table getTable() {
 		return table;
 	}

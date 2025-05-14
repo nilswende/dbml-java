@@ -17,14 +17,22 @@ public class Index implements SettingHolder<IndexSetting> {
 		this.table = Objects.requireNonNull(table);
 	}
 	
+	Index to(Table other) {
+		var index = new Index(other);
+		this.columns.keySet().forEach(index::addColumn);
+		index.settings.putAll(this.settings);
+		index.note = this.note;
+		return index;
+	}
+	
 	public Table getTable() {
 		return table;
 	}
 	
-	public boolean addColumn(String column) {
-		var containsColumn = columns.containsKey(column);
+	public boolean addColumn(String columnName) {
+		var containsColumn = columns.containsKey(columnName);
 		if (!containsColumn) {
-			columns.put(column, table.getColumn(column));
+			columns.put(columnName, table.getColumn(columnName));
 		}
 		return !containsColumn;
 	}
@@ -48,6 +56,19 @@ public class Index implements SettingHolder<IndexSetting> {
 	
 	public void setNote(Note note) {
 		this.note = note;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Index index = (Index) o;
+		return Objects.equals(table, index.table) && Objects.equals(columns, index.columns);
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(table, columns);
 	}
 	
 	@Override

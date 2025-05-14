@@ -42,6 +42,7 @@ public class LexerImpl extends AbstractLexer {
 			case ':' -> new TokenImpl(TokenType.COLON, next);
 			case ',' -> new TokenImpl(TokenType.COMMA, next);
 			case '.' -> new TokenImpl(TokenType.DOT, next);
+			case '~' -> new TokenImpl(TokenType.TILDE, next);
 			case '\n', '\r' -> new TokenImpl(TokenType.LINEBREAK, OUTPUT_LINEBREAK);
 			case ' ', '\t' -> new TokenImpl(TokenType.SPACE, OUTPUT_SPACE);
 			case '\'' -> nextString(next);

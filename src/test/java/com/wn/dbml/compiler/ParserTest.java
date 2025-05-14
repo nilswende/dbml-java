@@ -5,6 +5,7 @@ import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
+import com.wn.dbml.model.IndexSetting;
 import com.wn.dbml.model.Name;
 import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.RelationshipSetting;
@@ -383,6 +384,8 @@ class ParserTest {
 		var indexes = table.getIndexes();
 		assertNotNull(indexes);
 		assertEquals(8, indexes.size());
+		var index = table.getIndex("created_at_index");
+		assertNotNull(index);
 	}
 	
 	@Test
@@ -1068,5 +1071,191 @@ class ParserTest {
 		var userId = posts.getColumn("user_id");
 		assertNotNull(userId);
 		assertNotNull(userId.getSettings().get(ColumnSetting.NOT_NULL));
+	}
+	
+	@Test
+	void testTablePartialsOnly() {
+		var dbml = """
+				TablePartial base_template [headerColor: #ff0000] {
+				  id int [pk, not null]
+				  created_at timestamp [default: `now()`]
+				  updated_at timestamp [default: `now()`]
+				}
+				
+				TablePartial soft_delete_template {
+				  delete_status boolean [not null]
+				  deleted_at timestamp [default: `now()`]
+				}
+				
+				TablePartial email_index {
+				  email varchar [unique]
+				  
+				  indexes {
+				    email [unique]
+				  }
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		assertNull(schema);
+	}
+	
+	@Test
+	void testTablePartials() {
+		var dbml = """
+				TablePartial base_template [headerColor: #ff0000] {
+				  id int [pk, not null]
+				  created_at timestamp [default: `now()`]
+				  updated_at timestamp [default: `now()`]
+				}
+				
+				TablePartial soft_delete_template {
+				  delete_status boolean [not null]
+				  deleted_at timestamp [default: `now()`]
+				}
+				
+				TablePartial email_index {
+				  email varchar [unique]
+				  
+				  indexes {
+				    email [unique, name: 'U__email']
+				  }
+				}
+				
+				Table users {
+				  ~base_template
+				  ~email_index
+				  name varchar
+				  ~soft_delete_template
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		assertEquals("ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
+		assertEquals(7, users.getColumns().size());
+		var id = users.getColumn("id");
+		assertNotNull(id);
+		assertEquals("int", id.getType());
+		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
+		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		var deleteStatus = users.getColumn("delete_status");
+		assertNotNull(deleteStatus);
+		assertEquals("boolean", deleteStatus.getType());
+		var name = users.getColumn("name");
+		assertNotNull(name);
+		assertEquals("varchar", name.getType());
+		var emailIndex = users.getIndex("U__email");
+		assertNotNull(emailIndex);
+	}
+	
+	@Test
+	void testTablePartialsNested() {
+		var dbml = """
+				Table users {
+				  ~soft_delete_template
+				  name varchar
+				}
+				
+				TablePartial base_template [headerColor: #ff0000] {
+				  id int [pk, not null]
+				  created_at timestamp [default: `now()`]
+				  updated_at timestamp [default: `now()`]
+				}
+				
+				TablePartial soft_delete_template {
+				  ~base_template
+				  delete_status boolean [not null]
+				  deleted_at timestamp [default: `now()`]
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		assertEquals("ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
+		assertEquals(6, users.getColumns().size());
+		var id = users.getColumn("id");
+		assertNotNull(id);
+		assertEquals("int", id.getType());
+		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
+		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+	}
+	
+	@Test
+	void testTablePartialsOverride() {
+		var dbml = """
+				TablePartial base_template {
+				  id int [pk]
+				  other_column int [not null]
+				  
+				  indexes {
+				    other_column [name: '___other']
+				  }
+				}
+				
+				TablePartial other_template {
+				  other_column boolean [not null]
+				  
+				  indexes {
+				    other_column [unique, name: '___other']
+				  }
+				}
+				
+				Table users {
+				  ~base_template
+				  ~ other_template
+				  id bigint [not null]
+				  name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		assertEquals(3, users.getColumns().size());
+		var id = users.getColumn("id");
+		assertNotNull(id);
+		assertEquals("bigint", id.getType());
+		assertNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
+		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		var otherColumn = users.getColumn("other_column");
+		assertNotNull(otherColumn);
+		assertEquals("boolean", otherColumn.getType());
+		var otherIndex = users.getIndex("___other");
+		assertNotNull(otherIndex);
+		assertTrue(otherIndex.getSettings().containsKey(IndexSetting.UNIQUE));
+	}
+	
+	@Test
+	void testTablePartialsShared() {
+		var dbml = """
+				TablePartial base_template {
+				  id int [pk, not null]
+				}
+				
+				Table users {
+				  ~base_template
+				  name varchar
+				}
+				
+				Table posts {
+				  ~base_template
+				  title varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		assertEquals(2, users.getColumns().size());
+		var userId = users.getColumn("id");
+		assertNotNull(userId);
+		var posts = schema.getTable("posts");
+		assertEquals(2, posts.getColumns().size());
+		assertNotNull(posts);
+		var postsId = posts.getColumn("id");
+		assertNotNull(postsId);
 	}
 }
