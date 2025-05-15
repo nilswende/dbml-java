@@ -41,7 +41,9 @@ public class Table implements SettingHolder<TableSetting> {
 			this.indexes.add(index.to(this));
 		}
 		// note
-		this.note = other.note;
+		if (this.note == null && other.note != null) {
+			this.note = other.note;
+		}
 	}
 	
 	public Schema getSchema() {

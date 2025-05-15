@@ -1197,6 +1197,8 @@ class ParserTest {
 				  indexes {
 				    other_column [name: '___other']
 				  }
+				  
+				  note: "base note"
 				}
 				
 				TablePartial other_template {
@@ -1212,6 +1214,7 @@ class ParserTest {
 				  ~ other_template
 				  id bigint [not null]
 				  name varchar
+				  note: "users note"
 				}""";
 		var database = parse(dbml);
 		
@@ -1230,6 +1233,9 @@ class ParserTest {
 		var otherIndex = users.getIndex("___other");
 		assertNotNull(otherIndex);
 		assertTrue(otherIndex.getSettings().containsKey(IndexSetting.UNIQUE));
+		var note = users.getNote();
+		assertNotNull(note);
+		assertEquals("users note", note.getValue());
 	}
 	
 	@Test
