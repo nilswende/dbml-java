@@ -210,8 +210,8 @@ public class ParserImpl implements Parser {
 			var sb = new StringBuilder(datatype);
 			sb.append(tokenValue());
 			do {
-				next(LITERAL, RPAREN, SPACE, LINEBREAK);
-				if (typeIs(LITERAL, RPAREN)) {
+				next(LITERAL, NUMBER, RPAREN, LINEBREAK);
+				if (typeIs(LITERAL, NUMBER, RPAREN)) {
 					sb.append(tokenValue());
 				}
 			} while (!typeIs(RPAREN, LINEBREAK));

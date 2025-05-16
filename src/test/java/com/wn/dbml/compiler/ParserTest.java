@@ -330,19 +330,25 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("bill_of_materials");
 		assertNotNull(table);
+		var quantity = table.getColumn("quantity");
+		assertNotNull(quantity);
+		assertEquals("DECIMAL(10,2)", quantity.getType());
 	}
 	
 	@Test
 	void testColumnDatatypeDStringArgs() {
 		var dbml = """
 				Table bill_of_materials {
-				  quantity "DECIMAL"(10,2)
+				  quantity "DECIMAL(10,2)"
 				}""";
 		var database = parse(dbml);
 		
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("bill_of_materials");
 		assertNotNull(table);
+		var quantity = table.getColumn("quantity");
+		assertNotNull(quantity);
+		assertEquals("DECIMAL(10,2)", quantity.getType());
 	}
 	
 	@Test
@@ -359,6 +365,7 @@ class ParserTest {
 		assertNotNull(table);
 		var quantity = table.getColumn("quantity");
 		assertNotNull(quantity);
+		assertEquals("DECIMAL(10,2)", quantity.getType());
 		var setting = quantity.getSettings().get(ColumnSetting.NOT_NULL);
 		assertNotNull(setting);
 		var unit = table.getColumn("unit");
@@ -1053,6 +1060,39 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("Üser");
 		assertNotNull(table);
+	}
+	
+	@Test
+	void testNumberTableName() {
+		var dbml = """
+				Table 2 {
+				  organization_id integer [pk]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[1:7] unexpected token 'NUMBER'"), e.getMessage());
+	}
+	
+	@Test
+	void testNumberDecimalTableName() {
+		var dbml = """
+				Table 1.2 {
+				  organization_id integer [pk]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[1:9] unexpected token 'NUMBER'"), e.getMessage());
+	}
+	
+	@Test
+	void testNumberSchemaName() {
+		var dbml = """
+				Table 2.Organization {
+				  organization_id integer [pk]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[1:8] unexpected token 'NUMBER'"), e.getMessage());
 	}
 	
 	@Test
