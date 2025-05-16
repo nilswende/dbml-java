@@ -66,7 +66,7 @@ class TokenAccess {
 	}
 	
 	private boolean shouldParseAsLiteral(TokenType... types) {
-		return !type().isWhitespace() && !type().isMultiKeyword()
+		return !type().isWhitespace()
 				&& Arrays.stream(types).noneMatch(this::typeIs)
 				&& Arrays.stream(types).anyMatch(TokenType::isLiteral);
 	}

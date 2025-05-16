@@ -194,7 +194,7 @@ public class ParserImpl implements Parser {
 			var column = table.addColumn(name, datatype);
 			if (typeIs(LBRACK)) {
 				do {
-					next(NOT_NULL, NULL, PRIMARY_KEY, PK, UNIQUE, INCREMENT, NOTE, REF, DEFAULT);
+					next(NOT, NULL, PRIMARY, PK, UNIQUE, INCREMENT, NOTE, REF, DEFAULT);
 					parseColumnSetting(column);
 					next(COMMA, RBRACK);
 				} while (!typeIs(RBRACK));
@@ -223,10 +223,17 @@ public class ParserImpl implements Parser {
 	
 	private void parseColumnSetting(Column column) {
 		switch (tokenType()) {
-			case NOT_NULL -> addSetting(column, ColumnSetting.NOT_NULL);
+			case NOT -> {
+				next(NULL);
+				addSetting(column, ColumnSetting.NOT_NULL);
+			}
 			case NULL -> {
 			} // ignore
-			case PRIMARY_KEY, PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
+			case PRIMARY -> {
+				next(KEY);
+				addSetting(column, ColumnSetting.PRIMARY_KEY);
+			}
+			case PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
 			case UNIQUE -> addSetting(column, ColumnSetting.UNIQUE);
 			case INCREMENT -> addSetting(column, ColumnSetting.INCREMENT);
 			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypesOr(EXPR, BLITERAL, NLITERAL));
@@ -365,14 +372,24 @@ public class ParserImpl implements Parser {
 			do {
 				next(DELETE, UPDATE, COLOR);
 				var setting = RelationshipSetting.valueOf(tokenType().name());
+				String value;
 				if (typeIs(COLOR)) {
 					next(COLON);
 					next(COLOR_CODE);
+					value = tokenValue();
 				} else {
 					next(COLON);
-					next(CASCADE, RESTRICT, SET_NULL, SET_DEFAULT, NO_ACTION);
+					next(CASCADE, RESTRICT, SET, NO);
+					value = tokenValue();
+					if (typeIs(SET)) {
+						next(NULL, DEFAULT);
+						value = multiKeywordValue(value, tokenValue());
+					} else if (typeIs(NO)) {
+						next(ACTION);
+						value = multiKeywordValue(value, tokenValue());
+					}
 				}
-				map.put(setting, tokenValue());
+				map.put(setting, value);
 				next(COMMA, RBRACK);
 			} while (!typeIs(RBRACK));
 		}
@@ -662,6 +679,10 @@ public class ParserImpl implements Parser {
 	
 	private TokenType[] stringTypesOr(TokenType... types) {
 		return types != null && types.length > 0 ? concat(stringTypes(), types) : stringTypes();
+	}
+	
+	private String multiKeywordValue(String... keywords) {
+		return String.join(MULTI_SEPARATOR, keywords);
 	}
 	
 	private static <T> T[] concat(T[] first, T[] second) {

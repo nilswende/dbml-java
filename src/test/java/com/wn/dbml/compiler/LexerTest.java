@@ -54,18 +54,6 @@ class LexerTest {
 		assertEquals(dbml, tokenList.get(0).getValue());
 	}
 	
-	@Test
-	void testMultiKeyword() {
-		var dbml = "primary key";
-		var lexer = getLexer(dbml);
-		
-		var tokenList = lexer.tokenList();
-		var types = tokenList.stream().map(Token::getType).toList();
-		
-		assertEquals(List.of(PRIMARY_KEY, EOF), types);
-		assertEquals(dbml, tokenList.get(0).getValue());
-	}
-	
 	@ParameterizedTest
 	@MethodSource
 	void testString(char quote, TokenType expectedType) {

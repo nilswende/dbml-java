@@ -1,7 +1,6 @@
 package com.wn.dbml.compiler.lexer;
 
 import com.wn.dbml.compiler.Token;
-import com.wn.dbml.compiler.token.KeywordType;
 import com.wn.dbml.compiler.token.TokenImpl;
 import com.wn.dbml.compiler.token.TokenType;
 
@@ -56,11 +55,9 @@ public class LexerImpl extends AbstractLexer {
 	
 	private Token nextWord(int next) {
 		var word = nextWholeWord(next);
-		return KeywordType.of(word) == KeywordType.MULTI
-				? nextMultiKeyword(word)
-				// integers can be identifiers too, so we can't make the distinction here
-				// e.g. 1.2 can be a float or a schema.table name. Only the Parser can decide
-				: new TokenImpl(word);
+		// integers can be identifiers too, so we can't make the distinction here
+		// e.g. 1.2 can be a float or a schema.table name. Only the Parser can decide
+		return new TokenImpl(word);
 	}
 	
 	private String nextWholeWord(int next) {
@@ -73,33 +70,6 @@ public class LexerImpl extends AbstractLexer {
 			} else break;
 		}
 		return sb.toString();
-	}
-	
-	private Token nextMultiKeyword(String prefix) {
-		var separatorToken = nextTokenImpl();
-		var separatorValue = separatorToken.getValue();
-		if (!TokenType.isMultiSeparator(separatorValue)) {
-			reader.pushback(separatorValue);
-			return new TokenImpl(prefix);
-		}
-		var nextToken = nextTokenImpl();
-		var word = nextToken.getValue();
-		var multiWord = prefix + separatorValue + word;
-		return switch (KeywordType.of(multiWord)) {
-			case YES -> new TokenImpl(multiWord);
-			case NO -> {
-				if (KeywordType.of(word) == KeywordType.MULTI) {
-					var multiKeyword = nextMultiKeyword(multiWord);
-					if (KeywordType.of(multiKeyword.getValue()) == KeywordType.YES) {
-						yield multiKeyword;
-					}
-				}
-				reader.pushback(word);
-				reader.pushback(separatorValue);
-				yield new TokenImpl(prefix);
-			}
-			case MULTI -> throw new IllegalStateException("Cannot be MULTI here: " + multiWord);
-		};
 	}
 	
 	private Token nextLTSymbol(int lt) {

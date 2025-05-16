@@ -22,10 +22,11 @@ public enum TokenType {
 	HEADERCOLOR,
 	COLOR,
 	NOTE,
-	PRIMARY_KEY,
+	PRIMARY,
+	KEY,
 	PK,
 	NULL,
-	NOT_NULL,
+	NOT,
 	UNIQUE,
 	DEFAULT,
 	INCREMENT,
@@ -38,9 +39,9 @@ public enum TokenType {
 	UPDATE,
 	CASCADE,
 	RESTRICT,
-	SET_NULL,
-	SET_DEFAULT,
-	NO_ACTION,
+	SET,
+	NO,
+	ACTION,
 	_KEYWORDS_STOP,
 	MINUS,
 	LT,
@@ -76,13 +77,9 @@ public enum TokenType {
 	ILLEGAL;
 	
 	/**
-	 * The separator for multi-word keywords in DBML.
+	 * The normalized separator for multi-word keywords.
 	 */
-	static final char MULTI_SEPARATOR = ' ';
-	/**
-	 * The separator for multi-word keywords in this enum.
-	 */
-	static final char MULTI_SEPARATOR_ENUM = '_';
+	public static final String MULTI_SEPARATOR = " ";
 	private static final Map<String, TokenType> KEYWORDS;
 	
 	static {
@@ -103,16 +100,7 @@ public enum TokenType {
 	}
 	
 	static String normalize(String word) {
-		return word.toUpperCase().replace(TokenType.MULTI_SEPARATOR, TokenType.MULTI_SEPARATOR_ENUM);
-	}
-	
-	/**
-	 * Returns true, if the string is the separator for multi-word keywords in DBML.
-	 *
-	 * @param string a string
-	 */
-	public static boolean isMultiSeparator(String string) {
-		return string.length() == 1 && string.charAt(0) == MULTI_SEPARATOR;
+		return word.toUpperCase();
 	}
 	
 	/**
@@ -120,13 +108,6 @@ public enum TokenType {
 	 */
 	public boolean isKeyword() {
 		return TokenType._KEYWORDS_START.ordinal() < ordinal() && ordinal() < TokenType._KEYWORDS_STOP.ordinal();
-	}
-	
-	/**
-	 * Returns true, if this token represents a multi-word keyword.
-	 */
-	public boolean isMultiKeyword() {
-		return isKeyword() && name().indexOf(MULTI_SEPARATOR_ENUM) != -1;
 	}
 	
 	/**

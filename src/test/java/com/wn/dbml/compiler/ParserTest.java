@@ -266,6 +266,18 @@ class ParserTest {
 	}
 	
 	@Test
+	void testExtraWordColumnDefFails() {
+		var dbml = """
+				Table table1 {
+				  id int integer
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals(2, e.getPosition().line());
+		assertEquals(16, e.getPosition().column());
+	}
+	
+	@Test
 	void testParseTableExisting() {
 		var dbml = """
 				Table table1 {
@@ -669,7 +681,7 @@ class ParserTest {
 				  column2 integer
 				}
 				
-				Ref r1: table2.column2 <> table1.column1""";
+				Ref r1: table2.column2 <> table1.column1 [delete: cascade, update: no   action, color: #79AD51]""";
 		var database = parse(dbml);
 		
 		var relationships = database.getRelationships();
@@ -681,6 +693,9 @@ class ParserTest {
 		assertEquals("<>", ref.getRelation().getSymbol());
 		validateRefColumn(ref.getFrom(), 1, "table2.column2");
 		validateRefColumn(ref.getTo(), 1, "table1.column1");
+		assertEquals("cascade", ref.getSettings().get(RelationshipSetting.DELETE));
+		assertEquals("no action", ref.getSettings().get(RelationshipSetting.UPDATE));
+		assertEquals("79AD51", ref.getSettings().get(RelationshipSetting.COLOR));
 	}
 	
 	@Test
@@ -696,7 +711,7 @@ class ParserTest {
 				  column2 integer
 				}
 				
-				Ref r1: table2.(id, column2) <> table1.(id, column1)""";
+				Ref r1: table2.(id, column2) <> table1.(id, column1) [delete: set null]""";
 		var database = parse(dbml);
 		
 		var relationships = database.getRelationships();
@@ -708,6 +723,7 @@ class ParserTest {
 		assertEquals("<>", ref.getRelation().getSymbol());
 		validateRefColumn(ref.getFrom(), 2, "table2.(id, column2)");
 		validateRefColumn(ref.getTo(), 2, "table1.(id, column1)");
+		assertEquals("set null", ref.getSettings().get(RelationshipSetting.DELETE));
 	}
 	
 	@Test
@@ -891,20 +907,44 @@ class ParserTest {
 		
 		var schema = getDefaultSchema(database);
 		var table = schema.getTable("table1");
-		assertEquals("integer", table.getColumn("table").getType());
+		var column = table.getColumn("table");
+		assertNotNull(column);
+		assertEquals("integer", column.getType());
 	}
 	
 	@Test
-	void testKeywordLiteralSubstitutionMulti() {
+	void testMultiKeywordAsColumnDef() {
 		var dbml = """
 				Table table1 {
-				  not null integer
+				  not null
 				}""";
+		var database = parse(dbml);
 		
-		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertTrue(e.getMessage().contains("not null"));
-		assertEquals(2, e.getPosition().line());
-		assertEquals(10, e.getPosition().column());
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("table1");
+		var not = table.getColumn("not");
+		assertNotNull(not);
+		assertEquals("null", not.getType());
+	}
+	
+	@Test
+	void testMultiKeywordWhitespace() {
+		var dbml = """
+				Table table1 {
+				  id integer [not   null]
+				  name varchar [not\tnull]
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var table = schema.getTable("table1");
+		assertNotNull(table);
+		var id = table.getColumn("id");
+		assertNotNull(id);
+		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		var name = table.getColumn("name");
+		assertNotNull(name);
+		assertNotNull(name.getSettings().get(ColumnSetting.NOT_NULL));
 	}
 	
 	@Test
