@@ -971,6 +971,11 @@ class ParserTest {
 				  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
 				  active boolean [default: true]
 				  percent decimal [default: 100.0]
+				  def1 decimal [default: 1.]
+				  def2 decimal [default: -1]
+				  def3 decimal [default: - 1]
+				  def4 decimal [default: - 1.]
+				  def5 decimal [default: - 1.2]
 				  number int [default: 0]
 				}""";
 		var database = parse(dbml);
@@ -981,6 +986,11 @@ class ParserTest {
 		assertEquals("CURRENT_TIMESTAMP", table.getColumn("updated_at").getSettings().get(ColumnSetting.DEFAULT));
 		assertEquals("true", table.getColumn("active").getSettings().get(ColumnSetting.DEFAULT));
 		assertEquals("100.0", table.getColumn("percent").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("1", table.getColumn("def1").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("-1", table.getColumn("def2").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("-1", table.getColumn("def3").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("-1", table.getColumn("def4").getSettings().get(ColumnSetting.DEFAULT));
+		assertEquals("-1.2", table.getColumn("def5").getSettings().get(ColumnSetting.DEFAULT));
 		assertEquals("0", table.getColumn("number").getSettings().get(ColumnSetting.DEFAULT));
 	}
 	
@@ -997,7 +1007,19 @@ class ParserTest {
 	}
 	
 	@Test
-	void testParseColumnDefaultInvalidDecimal() {
+	void testParseColumnDefaultInvalidDecimal1() {
+		var dbml = """
+				Table Organization {
+				  organization_id integer [pk]
+				  number int [default: .1]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[3:24] unexpected token 'LITERAL'"), e.getMessage());
+	}
+	
+	@Test
+	void testParseColumnDefaultInvalidDecimal2() {
 		var dbml = """
 				Table Organization {
 				  organization_id integer [pk]
@@ -1005,7 +1027,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertTrue(e.getMessage().startsWith("[3:24] unexpected token 'LITERAL'"), e.getMessage());
+		assertTrue(e.getMessage().startsWith("[3:32] unexpected token 'LITERAL'"), e.getMessage());
 	}
 	
 	@Test

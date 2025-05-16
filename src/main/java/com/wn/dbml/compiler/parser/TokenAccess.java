@@ -73,28 +73,37 @@ class TokenAccess {
 	
 	private Token nextLiteral(TokenType... types) {
 		var typeSet = Set.of(types);
-		if (typeSet.contains(BLITERAL)) {
+		if (typeSet.contains(BOOLEAN)) {
 			if (Literals.isBooleanLiteral(value())) {
-				return token.withType(BLITERAL);
+				return token.withType(BOOLEAN);
 			}
 		}
-		if (typeSet.contains(NLITERAL)) {
-			var value = value();
+		if (typeSet.contains(NUMBER)) {
+			var prefix = value();
 			var peek = doLookahead();
+			if (typeIs(MINUS) && peek.getType() == LITERAL && Literals.isNumberLiteral(peek.getValue())) {
+				token = nextToken();
+				prefix += value();
+				peek = doLookahead();
+			}
 			if (peek.getType() == DOT) {
-				value += peek.getValue();
+				var dot = peek.getValue();
 				peek = doLookahead();
 				if (peek.getType() == LITERAL) {
-					value += peek.getValue();
-					if (Literals.isNumberLiteral(value)) {
-						nextToken();
-						nextToken();
-						return new TokenImpl(NLITERAL, value);
+					var decimal = prefix + dot + peek.getValue();
+					token = nextToken();
+					if (Literals.isNumberLiteral(decimal)) {
+						token = nextToken();
+						return new TokenImpl(NUMBER, decimal);
 					}
+					return new TokenImpl(NUMBER, prefix);
+				} else {
+					token = nextToken();
+					return new TokenImpl(NUMBER, prefix);
 				}
 			} else {
-				if (Literals.isNumberLiteral(value)) {
-					return token.withType(NLITERAL);
+				if (Literals.isNumberLiteral(prefix)) {
+					return new TokenImpl(NUMBER, prefix);
 				}
 			}
 		}

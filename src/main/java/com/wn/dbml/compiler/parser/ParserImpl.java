@@ -236,7 +236,7 @@ public class ParserImpl implements Parser {
 			case PK -> addSetting(column, ColumnSetting.PRIMARY_KEY);
 			case UNIQUE -> addSetting(column, ColumnSetting.UNIQUE);
 			case INCREMENT -> addSetting(column, ColumnSetting.INCREMENT);
-			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypesOr(EXPR, BLITERAL, NLITERAL));
+			case DEFAULT -> addSetting(column, ColumnSetting.DEFAULT, stringTypesOr(EXPR, BOOLEAN, NUMBER));
 			case NOTE -> column.setNote(parseInlineNote());
 			case REF -> relationshipDefinitions.add(parseInlineRef(column));
 			default -> throw new IllegalStateException("Unexpected value: " + tokenType());

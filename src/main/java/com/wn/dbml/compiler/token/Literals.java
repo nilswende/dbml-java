@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
  * Helper for literals.
  */
 public final class Literals {
-	private static final Set<String> BOOLEAN = Set.of("true", "false", "null");
-	private static final Pattern NUMBER = Pattern.compile("-?\\d+|-?\\d+\\.\\d+");
+	private static final Set<String> BOOLEANS = Set.of("true", "false", "null");
+	private static final Pattern NUMBERS = Pattern.compile("-?\\d+|-?\\d+\\.\\d+");
 	
 	private Literals() {
 		throw new AssertionError();
@@ -22,9 +22,9 @@ public final class Literals {
 	 */
 	public static TokenType getSubType(String value) {
 		if (isBooleanLiteral(value)) {
-			return TokenType.BLITERAL;
+			return TokenType.BOOLEAN;
 		} else if (isNumberLiteral(value)) {
-			return TokenType.NLITERAL;
+			return TokenType.NUMBER;
 		}
 		return null;
 	}
@@ -35,7 +35,7 @@ public final class Literals {
 	 * @param value a string
 	 */
 	public static boolean isBooleanLiteral(String value) {
-		return value != null && BOOLEAN.contains(value);
+		return value != null && BOOLEANS.contains(value);
 	}
 	
 	/**
@@ -44,7 +44,7 @@ public final class Literals {
 	 * @param value a string
 	 */
 	public static boolean isNumberLiteral(String value) {
-		return value != null && NUMBER.matcher(value).matches();
+		return value != null && NUMBERS.matcher(value).matches();
 	}
 	
 	/**
