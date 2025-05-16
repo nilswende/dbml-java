@@ -23,15 +23,7 @@ class LiteralsTest {
 				arguments("", false),
 				arguments("true", true),
 				arguments("false", true),
-				arguments("null", true),
-				arguments("1", true),
-				arguments("-1", true),
-				arguments("1.0", true),
-				arguments("-1.0", true),
-				arguments("1x", false),
-				arguments("-1x", false),
-				arguments("1.x", false),
-				arguments("-1.x", false)
+				arguments("null", true)
 		);
 	}
 }

@@ -9,10 +9,14 @@ final class Char {
 	}
 	
 	public static boolean isWordChar(int c) {
-		return Character.isLetter(c) || '0' <= c && c <= '9' || c == '_';
+		return Character.isLetter(c) || isDigit(c) || c == '_';
+	}
+	
+	public static boolean isDigit(int c) {
+		return '0' <= c && c <= '9';
 	}
 	
 	public static boolean isHexDigit(int c) {
-		return '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F';
+		return isDigit(c) || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F';
 	}
 }

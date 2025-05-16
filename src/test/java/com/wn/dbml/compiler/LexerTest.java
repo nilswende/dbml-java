@@ -36,9 +36,33 @@ class LexerTest {
 				arguments("ab12", List.of(LITERAL, EOF)),
 				arguments("ab12ab", List.of(LITERAL, EOF)),
 				arguments("12ab", List.of(LITERAL, EOF)),
-				arguments("12", List.of(LITERAL, EOF)),
 				arguments("_12", List.of(LITERAL, EOF)),
 				arguments("1_2", List.of(LITERAL, EOF))
+		);
+	}
+	
+	@ParameterizedTest
+	@MethodSource
+	void testNumber(String string, List<TokenType> expected) {
+		var lexer = getLexer(string);
+		
+		var actual = lexer.tokenStream().map(Token::getType).toList();
+		
+		assertEquals(expected, actual);
+	}
+	
+	static Stream<Arguments> testNumber() {
+		return Stream.of(
+				arguments("12", List.of(NUMBER, EOF)),
+				arguments("1.2", List.of(NUMBER, EOF)),
+				arguments("1.", List.of(NUMBER, EOF)),
+				arguments(".2", List.of(DOT, NUMBER, EOF)),
+				arguments("1.word", List.of(NUMBER, LITERAL, EOF)),
+				arguments("-12", List.of(MINUS, NUMBER, EOF)),
+				arguments("- 1.2", List.of(MINUS, SPACE, NUMBER, EOF)),
+				arguments("-1.", List.of(MINUS, NUMBER, EOF)),
+				arguments("-.2", List.of(MINUS, DOT, NUMBER, EOF)),
+				arguments("-1.word", List.of(MINUS, NUMBER, LITERAL, EOF))
 		);
 	}
 	

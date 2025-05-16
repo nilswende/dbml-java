@@ -55,8 +55,9 @@ public class LexerImpl extends AbstractLexer {
 	
 	private Token nextWord(int next) {
 		var word = nextWholeWord(next);
-		// integers can be identifiers too, so we can't make the distinction here
-		// e.g. 1.2 can be a float or a schema.table name. Only the Parser can decide
+		if (word.codePoints().allMatch(Char::isDigit)) {
+			return nextNumber(word);
+		}
 		return new TokenImpl(word);
 	}
 	
@@ -70,6 +71,32 @@ public class LexerImpl extends AbstractLexer {
 			} else break;
 		}
 		return sb.toString();
+	}
+	
+	private TokenImpl nextNumber(String word) {
+		if (reader.lookahead() == '.') {
+			var dot = (char) reader.nextChar();
+			var nextWord = lookaheadWholeWord();
+			if (!nextWord.isEmpty() && nextWord.codePoints().allMatch(Char::isDigit)) {
+				skipChars(nextWord.length());
+				return new TokenImpl(TokenType.NUMBER, word + dot + nextWord);
+			}
+		}
+		return new TokenImpl(TokenType.NUMBER, word);
+	}
+	
+	private String lookaheadWholeWord() {
+		int i = 1;
+		while (true) {
+			var lookahead = reader.lookahead(i);
+			if (lookahead.length() < i) {
+				return lookahead;
+			}
+			if (!lookahead.codePoints().allMatch(Char::isWordChar)) {
+				return lookahead.substring(0, i - 1);
+			}
+			i++;
+		}
 	}
 	
 	private Token nextLTSymbol(int lt) {

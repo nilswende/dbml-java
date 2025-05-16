@@ -995,7 +995,7 @@ class ParserTest {
 	}
 	
 	@Test
-	void testParseColumnDefaultInvalid() {
+	void testParseColumnDefaultInvalidLiteral() {
 		var dbml = """
 				Table Organization {
 				  organization_id integer [pk]
@@ -1007,7 +1007,19 @@ class ParserTest {
 	}
 	
 	@Test
-	void testParseColumnDefaultInvalidDecimal1() {
+	void testParseColumnDefaultInvalidDecimalLiteral() {
+		var dbml = """
+				Table Organization {
+				  organization_id integer [pk]
+				  number int [default: 1.invalid]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[3:32] unexpected token 'LITERAL'"), e.getMessage());
+	}
+	
+	@Test
+	void testParseColumnDefaultInvalidDecimalPrefix() {
 		var dbml = """
 				Table Organization {
 				  organization_id integer [pk]
@@ -1019,15 +1031,15 @@ class ParserTest {
 	}
 	
 	@Test
-	void testParseColumnDefaultInvalidDecimal2() {
+	void testParseColumnDefaultInvalidDecimalPointSpaces() {
 		var dbml = """
 				Table Organization {
 				  organization_id integer [pk]
-				  number int [default: 1.invalid]
+				  number int [default: 1 . 2]
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertTrue(e.getMessage().startsWith("[3:32] unexpected token 'LITERAL'"), e.getMessage());
+		assertTrue(e.getMessage().startsWith("[3:26] unexpected token 'DOT'"), e.getMessage());
 	}
 	
 	@Test
