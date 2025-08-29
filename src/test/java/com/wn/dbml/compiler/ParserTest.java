@@ -28,31 +28,6 @@ class ParserTest {
 	}
 	
 	@Test
-	void testParseTwice() {
-		var dbml = """
-				Table schema1.table1 {
-				  id integer
-				  column1 integer
-				}
-				
-				Table schema2.table2 {
-				  id integer
-				  column2 integer
-				}
-				
-				Ref r1: schema2.table2.column2 - schema1.table1.column1""";
-		var parser = new ParserImpl();
-		
-		var database = parser.parse(new LexerImpl(dbml));
-		var relationships = database.getRelationships();
-		assertEquals(1, relationships.size());
-		
-		database = parser.parse(new LexerImpl(dbml));
-		relationships = database.getRelationships();
-		assertEquals(1, relationships.size());
-	}
-	
-	@Test
 	void testParseProject() {
 		var dbml = """
 				Project project_name {
@@ -136,7 +111,7 @@ class ParserTest {
 				  }
 				}""";
 		
-		// was possible once, but not anymore
+		// was valid once, but not anymore
 		assertThrows(ParsingException.class, () -> parse(dbml));
 	}
 	
@@ -155,6 +130,31 @@ class ParserTest {
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertEquals("[6:7] Project is already defined", e.getMessage());
+	}
+	
+	@Test
+	void testParseTwice() {
+		var dbml = """
+				Table schema1.table1 {
+				  id integer
+				  column1 integer
+				}
+				
+				Table schema2.table2 {
+				  id integer
+				  column2 integer
+				}
+				
+				Ref r1: schema2.table2.column2 - schema1.table1.column1""";
+		var parser = new ParserImpl();
+		
+		var database = parser.parse(new LexerImpl(dbml));
+		var relationships = database.getRelationships();
+		assertEquals(1, relationships.size());
+		
+		database = parser.parse(new LexerImpl(dbml));
+		relationships = database.getRelationships();
+		assertEquals(1, relationships.size());
 	}
 	
 	@Test
