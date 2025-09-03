@@ -42,7 +42,6 @@ import static com.wn.dbml.compiler.token.TokenType.*;
  */
 public class ParserImpl implements Parser {
 	private List<RelationshipDefinition> relationshipDefinitions;
-	private Schema tablePartialsSchema;
 	private Map<Table, LinkedHashSet<String>> tablePartialRefs;
 	private TokenAccess tokenAccess;
 	private Database database;
@@ -50,7 +49,6 @@ public class ParserImpl implements Parser {
 	@Override
 	public Database parse(Lexer lexer) {
 		relationshipDefinitions = new ArrayList<>();
-		tablePartialsSchema = new Database().getOrCreateSchema(Schema.DEFAULT_NAME);
 		tablePartialRefs = new HashMap<>();
 		tokenAccess = new TokenAccess(lexer);
 		database = new Database();
@@ -115,34 +113,33 @@ public class ParserImpl implements Parser {
 	private Table parseTableHead() {
 		var tableName = parseTableName();
 		var schema = database.getOrCreateSchema(tableName.schema());
-		return parseTableHead(schema, tableName);
-	}
-	
-	private Table parseTableHead(Schema schema, TableName tableName) {
 		var table = schema.createTable(tableName.table());
 		if (table == null) {
 			error("Table '%s' is already defined", tableName);
-		} else {
-			next(AS, LBRACK, LBRACE);
-			if (typeIs(AS)) {
-				next(LITERAL, DSTRING); // alias
-				var alias = tokenValue();
-				if (database.containsAlias(alias)) {
-					error("Alias '%s' is already defined", alias);
-				}
-				table.setAlias(alias);
-				next(LBRACK, LBRACE);
-			}
-			if (typeIs(LBRACK)) {
-				do {
-					next(HEADERCOLOR, NOTE);
-					parseTableSetting(table);
-					next(COMMA, RBRACK);
-				} while (!typeIs(RBRACK));
-				next(LBRACE);
-			}
 		}
+		parseTableHead(table);
 		return table;
+	}
+	
+	private void parseTableHead(Table table) {
+		next(AS, LBRACK, LBRACE);
+		if (typeIs(AS)) {
+			next(LITERAL, DSTRING); // alias
+			var alias = tokenValue();
+			if (database.containsAlias(alias)) {
+				error("Alias '%s' is already defined", alias);
+			}
+			table.setAlias(alias);
+			next(LBRACK, LBRACE);
+		}
+		if (typeIs(LBRACK)) {
+			do {
+				next(HEADERCOLOR, NOTE);
+				parseTableSetting(table);
+				next(COMMA, RBRACK);
+			} while (!typeIs(RBRACK));
+			next(LBRACE);
+		}
 	}
 	
 	private void parseTableSetting(Table table) {
@@ -486,10 +483,17 @@ public class ParserImpl implements Parser {
 	
 	private void parseTablePartial() {
 		next(LITERAL, DSTRING); // name
-		var schema = tablePartialsSchema;
-		var tableName = new TableName(schema.getName(), tokenValue());
-		var table = parseTableHead(schema, tableName);
-		parseTableBody(table);
+		var tableName = tokenValue();
+		var partial = database.createTablePartial(tableName);
+		if (partial == null) {
+			error("TablePartial '%s' is already defined", tableName);
+		} else {
+			parseTableHead(partial);
+			if (partial.getAlias() != null) {
+				error("A TablePartial shouldn't have an alias");
+			}
+			parseTableBody(partial);
+		}
 	}
 	
 	private void parseNamedNote() {
@@ -532,9 +536,11 @@ public class ParserImpl implements Parser {
 		var refList = new ArrayList<>(tablePartialRefs.get(table));
 		Collections.reverse(refList);
 		for (var ref : refList) { // Java 21: tablePartialRefs.reversed()
-			var partial = tablePartialsSchema.getTable(ref);
-			injectTablePartial(partial);
-			table.inject(partial);
+			var partial = database.getTablePartial(ref);
+			if (!partial.equals(table)) {
+				injectTablePartial(partial);
+				table.inject(partial);
+			}
 		}
 	}
 	
@@ -556,7 +562,7 @@ public class ParserImpl implements Parser {
 	}
 	
 	private List<Column> validateColumnNames(RelationshipDefinition definition, ColumnNames names) {
-		var schema = database.getOrCreateSchema(names.schema());
+		var schema = database.getSchema(names.schema());
 		if (!schema.containsTable(names.table())) {
 			error(definition, "Table '%s' is not defined", Name.of(schema, names.table()));
 		}
@@ -572,8 +578,10 @@ public class ParserImpl implements Parser {
 	private Table findTable(TableName tableName) {
 		var table = database.getAlias(tableName.table());
 		if (table == null) {
-			var tableSchema = database.getOrCreateSchema(tableName.schema());
-			table = tableSchema.getTable(tableName.table());
+			var tableSchema = database.getSchema(tableName.schema());
+			if (tableSchema != null) {
+				table = tableSchema.getTable(tableName.table());
+			}
 		}
 		if (table == null) {
 			error("Table '%s' is not defined", tableName);

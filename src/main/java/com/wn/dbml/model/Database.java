@@ -11,12 +11,18 @@ import java.util.Set;
  * The top-level representation of a DBML file.
  */
 public class Database {
+	private static final String EMPTY = "";
 	private final Map<Schema, Schema> schemas = new LinkedHashMap<>();
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
 	private final Map<NamedNote, NamedNote> namedNotes = new LinkedHashMap<>();
+	private final Set<Table> tablePartials = new LinkedHashSet<>();
+	private final Schema tablePartialsSchema = new Schema(EMPTY);
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
+		if (name.equals(EMPTY)) {
+			throw new IllegalArgumentException("Can't create a schema with an empty name");
+		}
 		var schema = new Schema(name);
 		schemas.putIfAbsent(schema, schema);
 		return schemas.get(schema);
@@ -53,7 +59,7 @@ public class Database {
 	}
 	
 	public Relationship getRelationship(String name) {
-		return relationships.stream().filter(c -> c.getName().equals(name)).findAny().orElse(null);
+		return relationships.stream().filter(r -> r.getName().equals(name)).findAny().orElse(null);
 	}
 	
 	public Set<Relationship> getRelationships() {
@@ -72,6 +78,24 @@ public class Database {
 	
 	public Set<NamedNote> getNamedNotes() {
 		return new LinkedHashSet<>(namedNotes.values());
+	}
+	
+	public boolean containsTablePartial(String tableName) {
+		return getTablePartial(tableName) != null;
+	}
+	
+	public Table getTablePartial(String tableName) {
+		return tablePartials.stream().filter(t -> t.getName().equals(tableName)).findAny().orElse(null);
+	}
+	
+	public Table createTablePartial(String name) {
+		var table = new Table(tablePartialsSchema, name);
+		var added = tablePartials.add(table);
+		return added ? table : null;
+	}
+	
+	public Set<Table> getTablePartials() {
+		return Collections.unmodifiableSet(tablePartials);
 	}
 	
 	public Project getProject() {

@@ -25,7 +25,7 @@ public class Schema {
 	}
 	
 	public Table getTable(String tableName) {
-		return tables.stream().filter(c -> c.getName().equals(tableName)).findAny().orElse(null);
+		return tables.stream().filter(t -> t.getName().equals(tableName)).findAny().orElse(null);
 	}
 	
 	public Table createTable(String name) {
@@ -43,7 +43,7 @@ public class Schema {
 	}
 	
 	public Enum getEnum(String enumName) {
-		return enums.stream().filter(c -> c.getName().equals(enumName)).findAny().orElse(null);
+		return enums.stream().filter(e -> e.getName().equals(enumName)).findAny().orElse(null);
 	}
 	
 	public Enum createEnum(String name) {
@@ -61,7 +61,7 @@ public class Schema {
 	}
 	
 	public TableGroup getTableGroup(String tableGroupName) {
-		return tableGroups.stream().filter(c -> c.getName().equals(tableGroupName)).findAny().orElse(null);
+		return tableGroups.stream().filter(g -> g.getName().equals(tableGroupName)).findAny().orElse(null);
 	}
 	
 	public TableGroup createTableGroup(String name) {

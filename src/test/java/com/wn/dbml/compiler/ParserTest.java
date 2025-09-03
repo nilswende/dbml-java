@@ -96,14 +96,14 @@ class ParserTest {
 				  Table t2 {
 				    id integer
 				  }
-				  
+				
 				  Ref: t1.id - t2.id
-				  
+				
 				  TableGroup tbls {
 				    t1
 				    t2
 				  }
-				  
+				
 				  Enum e {
 				    val1
 				    val2
@@ -155,6 +155,17 @@ class ParserTest {
 		database = parser.parse(new LexerImpl(dbml));
 		relationships = database.getRelationships();
 		assertEquals(1, relationships.size());
+	}
+	
+	@Test
+	void testParseSchemaEmpty() {
+		var dbml = """
+				Table .users {
+				  id integer
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[1:12] unexpected token 'LITERAL'"));
 	}
 	
 	@Test
@@ -381,15 +392,15 @@ class ParserTest {
 				  country varchar
 				  booking_date date
 				  created_at timestamp
-				  
+				
 				  indexes {
 				    (id, country) [pk] // composite primary key
-				  
+				
 				    created_at [name: 'created_at_index', note: 'Date']
 				    booking_date
 				    (country, booking_date) [unique]
 				    booking_date [type: hash]
-				  
+				
 				    (`id*2`)
 				    (`id*3`,`getdate()`)
 				    (`id*3`,id)
@@ -412,7 +423,7 @@ class ParserTest {
 		var dbml = """
 				Table table1 {
 				  id integer
-				  
+				
 				  indexes {
 				    (name)
 				  }
@@ -427,7 +438,7 @@ class ParserTest {
 		var dbml = """
 				Table table1 {
 				  id integer
-				  
+				
 				  indexes {
 				    (id, id)
 				  }
@@ -1203,13 +1214,14 @@ class ParserTest {
 				
 				TablePartial email_index {
 				  email varchar [unique]
-				  
+				
 				  indexes {
 				    email [unique]
 				  }
 				}""";
 		var database = parse(dbml);
 		
+		assertFalse(database.getTablePartials().isEmpty());
 		var schema = getDefaultSchema(database);
 		assertNull(schema);
 	}
@@ -1231,7 +1243,7 @@ class ParserTest {
 				
 				TablePartial email_index {
 				  email varchar [unique]
-				  
+				
 				  indexes {
 				    email [unique, name: 'U__email']
 				  }
@@ -1307,17 +1319,17 @@ class ParserTest {
 				TablePartial base_template {
 				  id int [pk]
 				  other_column int [not null]
-				  
+				
 				  indexes {
 				    other_column [name: '___other']
 				  }
-				  
+				
 				  note: "base note"
 				}
 				
 				TablePartial other_template {
 				  other_column boolean [not null]
-				  
+				
 				  indexes {
 				    other_column [unique, name: '___other']
 				  }
@@ -1381,5 +1393,68 @@ class ParserTest {
 		assertNotNull(posts);
 		var postsId = posts.getColumn("id");
 		assertNotNull(postsId);
+	}
+	
+	@Test
+	void testTablePartialsSharedName() {
+		var dbml = """
+				TablePartial tbl {
+				  id int [pk, not null]
+				}
+				
+				Table tbl {
+				  ~tbl
+				  name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var tbl = schema.getTable("tbl");
+		assertNotNull(tbl);
+		assertEquals(2, tbl.getColumns().size());
+		var id = tbl.getColumn("id");
+		assertNotNull(id);
+		var name = tbl.getColumn("name");
+		assertNotNull(name);
+	}
+	
+	@Test
+	void testTablePartialsSelfRef() {
+		var dbml = """
+				TablePartial tbl {
+				  id int [pk, not null]
+				  ~tbl
+				}
+				
+				Table tbl {
+				  ~tbl
+				  name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var tbl = schema.getTable("tbl");
+		assertNotNull(tbl);
+		assertEquals(2, tbl.getColumns().size());
+		var id = tbl.getColumn("id");
+		assertNotNull(id);
+		var name = tbl.getColumn("name");
+		assertNotNull(name);
+	}
+	
+	@Test
+	void testTablePartialAlias() {
+		var dbml = """
+				TablePartial base_template as alias {
+				  id int [pk, not null]
+				}
+				
+				Table posts {
+				  ~base_template
+				  title varchar
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[1:37] A TablePartial shouldn't have an alias", e.getMessage());
 	}
 }
