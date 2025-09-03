@@ -11,7 +11,7 @@ public class NamedNote implements SettingHolder<NamedNoteSetting> {
 	private String value;
 	
 	public NamedNote(String name) {
-		this.name = name;
+		this.name = Objects.requireNonNull(name);
 	}
 	
 	public String getName() {
