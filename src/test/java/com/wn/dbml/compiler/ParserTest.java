@@ -210,6 +210,17 @@ class ParserTest {
 	}
 	
 	@Test
+	void testParseColumnTypeEmpty() {
+		var dbml = """
+				Table users {
+				  id ""
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[2:8] Invalid column type", e.getMessage());
+	}
+	
+	@Test
 	void testParseEnumValueEmpty() {
 		var dbml = """
 				enum v1.job_status {
