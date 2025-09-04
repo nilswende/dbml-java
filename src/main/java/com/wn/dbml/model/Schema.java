@@ -1,15 +1,17 @@
 package com.wn.dbml.model;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 public class Schema {
 	public static final String DEFAULT_NAME = "public";
 	private final String name;
-	private final Set<Table> tables = new LinkedHashSet<>();
-	private final Set<Enum> enums = new LinkedHashSet<>();
+	private final Map<String, Table> tables = new LinkedHashMap<>();
+	private final Map<String, Enum> enums = new LinkedHashMap<>();
 	
 	Schema(String name) {
 		this.name = Objects.requireNonNull(name);
@@ -24,7 +26,7 @@ public class Schema {
 	}
 	
 	public Table getTable(String tableName) {
-		return tables.stream().filter(t -> t.getName().equals(tableName)).findAny().orElse(null);
+		return tables.get(tableName);
 	}
 	
 	public Table createTable(String name) {
@@ -32,12 +34,12 @@ public class Schema {
 			throw new IllegalArgumentException("Table must have a name");
 		}
 		var table = new Table(this, name);
-		var added = tables.add(table);
+		var added = tables.putIfAbsent(name, table) == null;
 		return added ? table : null;
 	}
 	
 	public Set<Table> getTables() {
-		return Collections.unmodifiableSet(tables);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(tables.values()));
 	}
 	
 	public boolean containsEnum(String enumName) {
@@ -45,17 +47,17 @@ public class Schema {
 	}
 	
 	public Enum getEnum(String enumName) {
-		return enums.stream().filter(e -> e.getName().equals(enumName)).findAny().orElse(null);
+		return enums.get(enumName);
 	}
 	
 	public Enum createEnum(String name) {
 		var anEnum = new Enum(this, name);
-		var added = enums.add(anEnum);
+		var added = enums.putIfAbsent(name, anEnum) == null;
 		return added ? anEnum : null;
 	}
 	
 	public Set<Enum> getEnums() {
-		return Collections.unmodifiableSet(enums);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(enums.values()));
 	}
 	
 	@Override

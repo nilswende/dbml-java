@@ -12,11 +12,11 @@ import java.util.Set;
  */
 public class Database {
 	private static final String EMPTY = "";
-	private final Map<Schema, Schema> schemas = new LinkedHashMap<>();
+	private final Map<String, Schema> schemas = new LinkedHashMap<>();
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
-	private final Map<NamedNote, NamedNote> namedNotes = new LinkedHashMap<>();
-	private final Set<TableGroup> tableGroups = new LinkedHashSet<>();
-	private final Set<Table> tablePartials = new LinkedHashSet<>();
+	private final Map<String, NamedNote> namedNotes = new LinkedHashMap<>();
+	private final Map<String, TableGroup> tableGroups = new LinkedHashMap<>();
+	private final Map<String, Table> tablePartials = new LinkedHashMap<>();
 	private final Schema tablePartialsSchema = new Schema(EMPTY);
 	private Project project;
 	
@@ -24,17 +24,17 @@ public class Database {
 		if (name.isEmpty()) {
 			throw new IllegalArgumentException("Schema must have a name");
 		}
-		var schema = new Schema(name);
-		schemas.putIfAbsent(schema, schema);
-		return schemas.get(schema);
+		var created = new Schema(name);
+		var existing = schemas.putIfAbsent(name, created);
+		return existing == null ? created : existing;
 	}
 	
 	public Schema getSchema(String name) {
-		return schemas.get(new Schema(name));
+		return schemas.get(name);
 	}
 	
 	public Set<Schema> getSchemas() {
-		return Collections.unmodifiableSet(schemas.keySet());
+		return Collections.unmodifiableSet(new LinkedHashSet<>(schemas.values()));
 	}
 	
 	public boolean containsAlias(String alias) {
@@ -72,16 +72,16 @@ public class Database {
 			throw new IllegalArgumentException("NamedNote must have a name");
 		}
 		var namedNote = new NamedNote(name);
-		var added = namedNotes.putIfAbsent(namedNote, namedNote) == null;
+		var added = namedNotes.putIfAbsent(name, namedNote) == null;
 		return added ? namedNote : null;
 	}
 	
 	public NamedNote getNamedNote(String name) {
-		return namedNotes.get(new NamedNote(name));
+		return namedNotes.get(name);
 	}
 	
 	public Set<NamedNote> getNamedNotes() {
-		return new LinkedHashSet<>(namedNotes.values());
+		return Collections.unmodifiableSet(new LinkedHashSet<>(namedNotes.values()));
 	}
 	
 	public boolean containsTableGroup(String tableGroupName) {
@@ -89,17 +89,17 @@ public class Database {
 	}
 	
 	public TableGroup getTableGroup(String tableGroupName) {
-		return tableGroups.stream().filter(g -> g.getName().equals(tableGroupName)).findAny().orElse(null);
+		return tableGroups.get(tableGroupName);
 	}
 	
 	public TableGroup createTableGroup(String name) {
 		var tableGroup = new TableGroup(name);
-		var added = tableGroups.add(tableGroup);
+		var added = tableGroups.putIfAbsent(name, tableGroup) == null;
 		return added ? tableGroup : null;
 	}
 	
 	public Set<TableGroup> getTableGroups() {
-		return Collections.unmodifiableSet(tableGroups);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(tableGroups.values()));
 	}
 	
 	public boolean containsTablePartial(String tableName) {
@@ -107,7 +107,7 @@ public class Database {
 	}
 	
 	public Table getTablePartial(String tableName) {
-		return tablePartials.stream().filter(t -> t.getName().equals(tableName)).findAny().orElse(null);
+		return tablePartials.get(tableName);
 	}
 	
 	public Table createTablePartial(String name) {
@@ -115,12 +115,12 @@ public class Database {
 			throw new IllegalArgumentException("TablePartial must have a name");
 		}
 		var table = new Table(tablePartialsSchema, name);
-		var added = tablePartials.add(table);
+		var added = tablePartials.putIfAbsent(name, table) == null;
 		return added ? table : null;
 	}
 	
 	public Set<Table> getTablePartials() {
-		return Collections.unmodifiableSet(tablePartials);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(tablePartials.values()));
 	}
 	
 	public Project getProject() {

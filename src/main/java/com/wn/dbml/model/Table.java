@@ -2,6 +2,7 @@ package com.wn.dbml.model;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +12,7 @@ public class Table implements SettingHolder<TableSetting> {
 	private final Schema schema;
 	private final String name;
 	private final Map<TableSetting, String> settings = new EnumMap<>(TableSetting.class);
-	private final Set<Column> columns = new LinkedHashSet<>();
+	private final Map<String, Column> columns = new LinkedHashMap<>();
 	private final Set<Index> indexes = new LinkedHashSet<>();
 	private String alias;
 	private Note note;
@@ -26,15 +27,11 @@ public class Table implements SettingHolder<TableSetting> {
 		// settings
 		for (var entry : other.settings.entrySet()) {
 			var setting = entry.getKey();
-			if (!this.settings.containsKey(setting)) {
-				addSetting(setting, entry.getValue());
-			}
+			this.settings.putIfAbsent(setting, entry.getValue());
 		}
 		// columns
-		for (var column : other.columns) {
-			if (!containsColumn(column.getName())) {
-				this.columns.add(column.to(this));
-			}
+		for (var column : other.columns.values()) {
+			this.columns.putIfAbsent(column.getName(), column.to(this));
 		}
 		// indexes
 		for (var index : other.indexes) {
@@ -68,7 +65,7 @@ public class Table implements SettingHolder<TableSetting> {
 	}
 	
 	public Column getColumn(String columnName) {
-		return columns.stream().filter(c -> c.getName().equals(columnName)).findAny().orElse(null);
+		return columns.get(columnName);
 	}
 	
 	public Column addColumn(String columnName, String datatype) {
@@ -79,12 +76,12 @@ public class Table implements SettingHolder<TableSetting> {
 			throw new IllegalArgumentException("Invalid column type");
 		}
 		var column = new Column(this, columnName, datatype);
-		var added = columns.add(column);
+		var added = columns.putIfAbsent(columnName, column) == null;
 		return added ? column : null;
 	}
 	
 	public Set<Column> getColumns() {
-		return Collections.unmodifiableSet(columns);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(columns.values()));
 	}
 	
 	public Index getIndex(String indexName) {
