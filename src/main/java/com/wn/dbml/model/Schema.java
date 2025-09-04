@@ -10,7 +10,6 @@ public class Schema {
 	private final String name;
 	private final Set<Table> tables = new LinkedHashSet<>();
 	private final Set<Enum> enums = new LinkedHashSet<>();
-	private final Set<TableGroup> tableGroups = new LinkedHashSet<>();
 	
 	Schema(String name) {
 		this.name = Objects.requireNonNull(name);
@@ -57,24 +56,6 @@ public class Schema {
 	
 	public Set<Enum> getEnums() {
 		return Collections.unmodifiableSet(enums);
-	}
-	
-	public boolean containsTableGroup(String tableGroupName) {
-		return getTableGroup(tableGroupName) != null;
-	}
-	
-	public TableGroup getTableGroup(String tableGroupName) {
-		return tableGroups.stream().filter(g -> g.getName().equals(tableGroupName)).findAny().orElse(null);
-	}
-	
-	public TableGroup createTableGroup(String name) {
-		var tableGroup = new TableGroup(this, name);
-		var added = tableGroups.add(tableGroup);
-		return added ? tableGroup : null;
-	}
-	
-	public Set<TableGroup> getTableGroups() {
-		return Collections.unmodifiableSet(tableGroups);
 	}
 	
 	@Override

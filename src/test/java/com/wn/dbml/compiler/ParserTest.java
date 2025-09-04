@@ -82,7 +82,7 @@ class ParserTest {
 		assertTrue(schema.containsTable("t1"));
 		assertTrue(schema.containsTable("t2"));
 		assertEquals(1, database.getRelationships().size());
-		assertEquals(1, schema.getTableGroups().size());
+		assertEquals(1, database.getTableGroups().size());
 		assertEquals(1, schema.getEnums().size());
 	}
 	
@@ -587,7 +587,7 @@ class ParserTest {
 				  id integer
 				}
 				
-				TableGroup a.tablegroup_name [color: #fff, note: "group note attr"] {
+				TableGroup tablegroup_name [color: #fff, note: "group note attr"] {
 				  table1
 				  table2
 				  C
@@ -595,12 +595,10 @@ class ParserTest {
 				}""";
 		var database = parse(dbml);
 		
-		var schema = database.getSchema("a");
-		assertNotNull(schema);
 		var tableGroupName = "tablegroup_name";
-		var tableGroup = schema.getTableGroup(tableGroupName);
+		var tableGroup = database.getTableGroup(tableGroupName);
 		assertNotNull(tableGroup);
-		assertTrue(schema.containsTableGroup(tableGroupName));
+		assertTrue(database.containsTableGroup(tableGroupName));
 		var tables = tableGroup.getTables();
 		assertEquals(3, tables.size());
 		var note = tableGroup.getNote();
@@ -662,6 +660,22 @@ class ParserTest {
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertEquals("[7:8] Table 'table1' is already defined", e.getMessage());
+	}
+	
+	@Test
+	void testParseTableGroupSchema() {
+		var dbml = """
+				Table table1 {
+				  id integer
+				}
+				
+				TableGroup a.tg {
+				  table1
+				}""";
+		
+		// was valid once, but not anymore
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[5:13] unexpected token 'DOT'"));
 	}
 	
 	@Test
@@ -1352,6 +1366,17 @@ class ParserTest {
 		var note = users.getNote();
 		assertNotNull(note);
 		assertEquals("base note", note.getValue());
+	}
+	
+	@Test
+	void testParseTablePartialSchema() {
+		var dbml = """
+				TablePartial a.base_template {
+				  id int [pk, not null]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertTrue(e.getMessage().startsWith("[1:15] unexpected token 'DOT'"));
 	}
 	
 	@Test

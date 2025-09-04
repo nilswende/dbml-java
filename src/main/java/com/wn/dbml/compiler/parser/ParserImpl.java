@@ -443,9 +443,9 @@ public class ParserImpl implements Parser {
 	}
 	
 	private void parseTableGroup() {
-		var tableGroupName = parseTableName();
-		var schema = database.getOrCreateSchema(tableGroupName.schema());
-		var tableGroup = schema.createTableGroup(tableGroupName.table());
+		next(LITERAL, DSTRING); // name
+		var tableGroupName = tokenValue();
+		var tableGroup = database.createTableGroup(tableGroupName);
 		if (tableGroup == null) {
 			error("TableGroup '%s' is already defined", tableGroupName);
 		} else {

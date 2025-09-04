@@ -15,6 +15,7 @@ public class Database {
 	private final Map<Schema, Schema> schemas = new LinkedHashMap<>();
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
 	private final Map<NamedNote, NamedNote> namedNotes = new LinkedHashMap<>();
+	private final Set<TableGroup> tableGroups = new LinkedHashSet<>();
 	private final Set<Table> tablePartials = new LinkedHashSet<>();
 	private final Schema tablePartialsSchema = new Schema(EMPTY);
 	private Project project;
@@ -81,6 +82,24 @@ public class Database {
 	
 	public Set<NamedNote> getNamedNotes() {
 		return new LinkedHashSet<>(namedNotes.values());
+	}
+	
+	public boolean containsTableGroup(String tableGroupName) {
+		return getTableGroup(tableGroupName) != null;
+	}
+	
+	public TableGroup getTableGroup(String tableGroupName) {
+		return tableGroups.stream().filter(g -> g.getName().equals(tableGroupName)).findAny().orElse(null);
+	}
+	
+	public TableGroup createTableGroup(String name) {
+		var tableGroup = new TableGroup(name);
+		var added = tableGroups.add(tableGroup);
+		return added ? tableGroup : null;
+	}
+	
+	public Set<TableGroup> getTableGroups() {
+		return Collections.unmodifiableSet(tableGroups);
 	}
 	
 	public boolean containsTablePartial(String tableName) {
