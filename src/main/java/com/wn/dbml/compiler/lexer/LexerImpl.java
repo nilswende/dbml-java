@@ -125,6 +125,12 @@ public class LexerImpl extends AbstractLexer {
 			var lookahead = reader.lookahead(quote.length());
 			if (c == -1) {
 				return new TokenImpl(TokenType.ILLEGAL, c);
+			} else if (c == quote.charAt(0)) {
+				var next = Character.toString(c) + lookahead;
+				if (next.startsWith(quote)) {
+					skipChars(quote.length() - 1);
+					break;
+				}
 			} else if (c == '\\') {
 				if (lookahead.startsWith("\\")) {
 					lookahead = appendEscaped(lookahead.substring(0, 1), sb);
@@ -164,18 +170,17 @@ public class LexerImpl extends AbstractLexer {
 			var lookahead = reader.lookahead();
 			if (c == -1) {
 				return new TokenImpl(TokenType.ILLEGAL, c);
+			} else if (c == quote) {
+				break;
 			} else if (c == '\\') {
 				if (lookahead == quote) {
-					lookahead = appendEscaped(lookahead, sb);
+					sb.append((char) lookahead);
+					skipChars(1);
 				} else {
 					sb.append((char) c);
 				}
 			} else {
 				sb.append((char) c);
-			}
-			if (lookahead == quote) {
-				skipChars(1);
-				break;
 			}
 		}
 		var type = switch (quote) {
@@ -185,12 +190,6 @@ public class LexerImpl extends AbstractLexer {
 			default -> throw new IllegalStateException("Unexpected value: " + quote);
 		};
 		return new TokenImpl(type, sb.toString());
-	}
-	
-	private int appendEscaped(int escaped, StringBuilder sb) {
-		sb.append((char) escaped);
-		skipChars(1);
-		return reader.lookahead();
 	}
 	
 	private Token nextExpression(int quote) {

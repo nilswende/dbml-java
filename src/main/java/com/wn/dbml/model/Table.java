@@ -72,6 +72,9 @@ public class Table implements SettingHolder<TableSetting> {
 	}
 	
 	public Column addColumn(String columnName, String datatype) {
+		if (columnName.isEmpty()) {
+			throw new IllegalArgumentException("Column must have a name");
+		}
 		var column = new Column(this, columnName, datatype);
 		var added = columns.add(column);
 		return added ? column : null;

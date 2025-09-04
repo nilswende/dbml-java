@@ -311,4 +311,43 @@ class LexerTest {
 		assertEquals(1, lexer.getPosition().line());
 		assertEquals(8, lexer.getPosition().column());
 	}
+	
+	@Test
+	void testEmptySString() {
+		var dbml = "note: ''";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(NOTE, COLON, SPACE, SSTRING, EOF), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(8, lexer.getPosition().column());
+	}
+	
+	@Test
+	void testEmptyDString() {
+		var dbml = "note: \"\"";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(NOTE, COLON, SPACE, DSTRING, EOF), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(8, lexer.getPosition().column());
+	}
+	
+	@Test
+	void testEmptyTString() {
+		var dbml = "note: ''''''";
+		var lexer = getLexer(dbml);
+		
+		var tokenList = lexer.tokenList();
+		var types = tokenList.stream().map(Token::getType).toList();
+		
+		assertEquals(List.of(NOTE, COLON, SPACE, TSTRING, EOF), types);
+		assertEquals(1, lexer.getPosition().line());
+		assertEquals(12, lexer.getPosition().column());
+	}
 }

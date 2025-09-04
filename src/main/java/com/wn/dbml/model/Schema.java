@@ -29,6 +29,9 @@ public class Schema {
 	}
 	
 	public Table createTable(String name) {
+		if (name.isEmpty()) {
+			throw new IllegalArgumentException("Table must have a name");
+		}
 		var table = new Table(this, name);
 		var added = tables.add(table);
 		return added ? table : null;

@@ -169,6 +169,80 @@ class ParserTest {
 	}
 	
 	@Test
+	void testParseNoteEmpty() {
+		var dbml = """
+				Table users {
+				  id integer [note: '']
+				  note: ""
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users.getNote());
+		assertEquals("", users.getNote().getValue());
+		var idColumn = users.getColumn("id");
+		assertNotNull(idColumn);
+		assertNotNull(idColumn.getNote());
+		assertEquals("", idColumn.getNote().getValue());
+	}
+	
+	@Test
+	void testParseSchemaEmptyString() {
+		var dbml = """
+				Table "".users {
+				  id integer
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[1:14] Schema must have a name", e.getMessage());
+	}
+	
+	@Test
+	void testParseColumnEmpty() {
+		var dbml = """
+				Table users {
+				  "" integer
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[2:13] Column must have a name", e.getMessage());
+	}
+	
+	@Test
+	void testParseEnumValueEmpty() {
+		var dbml = """
+				enum v1.job_status {
+				  ""
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[2:4] Enum value must have a name", e.getMessage());
+	}
+	
+	@Test
+	void testParseNamedNoteValueEmpty() {
+		var dbml = """
+				Note "" {
+				  ''
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[1:7] NamedNote must have a name", e.getMessage());
+	}
+	
+	@Test
+	void testParseTablePartialValueEmpty() {
+		var dbml = """
+				TablePartial "" {
+				  id int [pk, not null]
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[1:15] TablePartial must have a name", e.getMessage());
+	}
+	
+	@Test
 	void testParseTable() {
 		var dbml = """
 				Table s.users as U [headercolor: #3498DB] {

@@ -52,21 +52,25 @@ public class ParserImpl implements Parser {
 		tablePartialRefs = new HashMap<>();
 		tokenAccess = new TokenAccess(lexer);
 		database = new Database();
-		loop:
-		while (true) {
-			next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, TABLEPARTIAL, NOTE, EOF);
-			switch (tokenType()) {
-				case PROJECT -> parseProject();
-				case TABLE -> parseTable();
-				case REF -> parseRelationship();
-				case ENUM -> parseEnum();
-				case TABLEGROUP -> parseTableGroup();
-				case TABLEPARTIAL -> parseTablePartial();
-				case NOTE -> parseNamedNote();
-				default -> {
-					break loop;
+		try {
+			loop:
+			while (true) {
+				next(PROJECT, TABLE, REF, ENUM, TABLEGROUP, TABLEPARTIAL, NOTE, EOF);
+				switch (tokenType()) {
+					case PROJECT -> parseProject();
+					case TABLE -> parseTable();
+					case REF -> parseRelationship();
+					case ENUM -> parseEnum();
+					case TABLEGROUP -> parseTableGroup();
+					case TABLEPARTIAL -> parseTablePartial();
+					case NOTE -> parseNamedNote();
+					default -> {
+						break loop;
+					}
 				}
 			}
+		} catch (IllegalArgumentException e) {
+			error(e.getMessage());
 		}
 		injectTablePartials();
 		createRelationships();

@@ -20,8 +20,8 @@ public class Database {
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
-		if (name.equals(EMPTY)) {
-			throw new IllegalArgumentException("Can't create a schema with an empty name");
+		if (name.isEmpty()) {
+			throw new IllegalArgumentException("Schema must have a name");
 		}
 		var schema = new Schema(name);
 		schemas.putIfAbsent(schema, schema);
@@ -67,6 +67,9 @@ public class Database {
 	}
 	
 	public NamedNote addNamedNote(String name) {
+		if (name.isEmpty()) {
+			throw new IllegalArgumentException("NamedNote must have a name");
+		}
 		var namedNote = new NamedNote(name);
 		var added = namedNotes.putIfAbsent(namedNote, namedNote) == null;
 		return added ? namedNote : null;
@@ -89,6 +92,9 @@ public class Database {
 	}
 	
 	public Table createTablePartial(String name) {
+		if (name.isEmpty()) {
+			throw new IllegalArgumentException("TablePartial must have a name");
+		}
 		var table = new Table(tablePartialsSchema, name);
 		var added = tablePartials.add(table);
 		return added ? table : null;
