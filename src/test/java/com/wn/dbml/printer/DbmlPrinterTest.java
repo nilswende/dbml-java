@@ -90,4 +90,26 @@ class DbmlPrinterTest {
 		
 		assertEquals(dbml, printer.toString());
 	}
+	
+	@Test
+	void printEnum() {
+		var dbml = """
+				enum job_status {
+				  created [note: 'Waiting to be processed']
+				  running
+				  done
+				  failure
+				}
+				
+				Table jobs {
+				  id integer
+				  status job_status
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
 }

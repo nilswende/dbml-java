@@ -45,6 +45,6 @@ public class EnumValue {
 	
 	@Override
 	public String toString() {
-		return Name.of(anEnum, name);
+		return Name.of(name);
 	}
 }

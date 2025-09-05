@@ -6,6 +6,7 @@ import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
 import com.wn.dbml.model.Enum;
+import com.wn.dbml.model.EnumValue;
 import com.wn.dbml.model.Index;
 import com.wn.dbml.model.IndexSetting;
 import com.wn.dbml.model.NamedNote;
@@ -18,7 +19,7 @@ import com.wn.dbml.model.TablePartial;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
 import java.util.ArrayList;
-import java.util.function.UnaryOperator;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -37,10 +38,10 @@ public class DbmlPrinter implements DatabaseVisitor {
 		this.formatter = formatter;
 	}
 	
-	private void printLine(UnaryOperator<StringBuilder> line) {
+	private void println(Consumer<StringBuilder> line) {
 		indent();
-		line.apply(sb);
-		newline();
+		line.accept(sb);
+		println();
 	}
 	
 	private void indent() {
@@ -49,7 +50,7 @@ public class DbmlPrinter implements DatabaseVisitor {
 		}
 	}
 	
-	private void newline() {
+	private void println() {
 		sb.append(formatter.getLinebreak());
 	}
 	
@@ -65,9 +66,15 @@ public class DbmlPrinter implements DatabaseVisitor {
 		return s.equals("null") || Chars.isNumber(s) ? s : quoteString(s);
 	}
 	
+	private void endLevel() {
+		level--;
+		println(sb -> sb.append('}'));
+		println();
+	}
+	
 	@Override
 	public void visit(Column column) {
-		printLine(sb -> sb.append(column).append(' ').append(quoteColumnType(column.getType())).append(columnSettings(column)));
+		println(sb -> sb.append(column).append(' ').append(quoteColumnType(column.getType())).append(columnSettings(column)));
 	}
 	
 	private String columnSettings(Column column) {
@@ -96,12 +103,19 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(Enum anEnum) {
+		println(sb -> sb.append("enum ").append(anEnum).append(" {"));
+		level++;
+		anEnum.getValues().forEach(ev -> println(sb -> sb.append(ev).append(enumSettings(ev))));
+		endLevel();
+	}
 	
+	private String enumSettings(EnumValue value) {
+		return value.getNote() != null && !value.getNote().getValue().isBlank() ? " [note: " + quoteString(value.getNote().getValue()) + ']' : Chars.EMPTY;
 	}
 	
 	@Override
 	public void visit(Index index) {
-		printLine(sb -> sb.append(index).append(indexSettings(index)));
+		println(sb -> sb.append(index).append(indexSettings(index)));
 	}
 	
 	private String indexSettings(Index index) {
@@ -120,24 +134,22 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(NamedNote namedNote) {
-		printLine(sb -> sb.append("Note ").append(namedNote.getName()).append(" {"));
+		println(sb -> sb.append("Note ").append(namedNote.getName()).append(" {"));
 		level++;
-		printLine(sb -> sb.append(quoteString(namedNote.getValue())));
-		level--;
-		sb.append('}');
+		println(sb -> sb.append(quoteString(namedNote.getValue())));
+		endLevel();
 	}
 	
 	@Override
 	public void visit(Project project) {
-		printLine(sb -> sb.append("Project ").append(project).append(" {"));
+		println(sb -> sb.append("Project ").append(project).append(" {"));
 		level++;
-		project.getProperties().forEach((k, v) -> printLine(sb -> sb.append(k).append(": '").append(v).append('\'')));
+		project.getProperties().forEach((k, v) -> println(sb -> sb.append(k).append(": '").append(v).append('\'')));
 		if (project.getNote() != null && !project.getNote().getValue().isBlank()) {
-			newline();
-			printLine(sb -> sb.append("Note: ").append(quoteString(project.getNote().getValue())));
+			println();
+			println(sb -> sb.append("Note: ").append(quoteString(project.getNote().getValue())));
 		}
-		level--;
-		sb.append('}');
+		endLevel();
 	}
 	
 	@Override
@@ -153,23 +165,22 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(Table table) {
-		printLine(sb -> sb.append("Table ").append(table).append(tableAlias(table)).append(tableSettings(table)).append(" {"));
+		println(sb -> sb.append("Table ").append(table).append(tableAlias(table)).append(tableSettings(table)).append(" {"));
 		level++;
 		table.getColumns().forEach(c -> c.accept(this));
 		if (!table.getIndexes().isEmpty()) {
-			newline();
-			printLine(sb -> sb.append("indexes").append(" {"));
+			println();
+			println(sb -> sb.append("indexes").append(" {"));
 			level++;
 			table.getIndexes().forEach(i -> i.accept(this));
 			level--;
-			printLine(sb -> sb.append('}'));
+			println(sb -> sb.append('}'));
 		}
 		if (table.getNote() != null && !table.getNote().getValue().isBlank()) {
-			newline();
-			printLine(sb -> sb.append("Note: ").append(quoteString(table.getNote().getValue())));
+			println();
+			println(sb -> sb.append("Note: ").append(quoteString(table.getNote().getValue())));
 		}
-		level--;
-		sb.append('}');
+		endLevel();
 	}
 	
 	private String tableAlias(Table table) {
@@ -195,6 +206,6 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public String toString() {
-		return sb.toString();
+		return sb.delete(sb.length() - 2, sb.length()).toString();
 	}
 }
