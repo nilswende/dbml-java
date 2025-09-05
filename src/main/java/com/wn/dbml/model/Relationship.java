@@ -1,11 +1,14 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Relationship implements SettingHolder<RelationshipSetting> {
+public class Relationship implements SettingHolder<RelationshipSetting>, DatabaseElement {
 	private final String name;
 	private final Relation relation;
 	private final List<Column> from, to;
@@ -60,5 +63,10 @@ public class Relationship implements SettingHolder<RelationshipSetting> {
 	@Override
 	public String toString() {
 		return from + " " + relation + " " + to;
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

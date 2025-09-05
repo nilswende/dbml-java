@@ -1,5 +1,7 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
+
 import java.util.Objects;
 
 public class EnumValue {

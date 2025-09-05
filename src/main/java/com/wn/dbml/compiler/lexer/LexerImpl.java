@@ -1,5 +1,6 @@
 package com.wn.dbml.compiler.lexer;
 
+import com.wn.dbml.Char;
 import com.wn.dbml.compiler.Token;
 import com.wn.dbml.compiler.token.TokenImpl;
 import com.wn.dbml.compiler.token.TokenType;
@@ -48,7 +49,7 @@ public class LexerImpl extends AbstractLexer {
 			case '"' -> nextSingleLineString(next);
 			case '`' -> nextExpression(next);
 			case '/' -> nextComment(next);
-			case '#' -> nextColorCode();
+			case '#' -> nextColorCode(next);
 			default -> new TokenImpl(TokenType.ILLEGAL, next);
 		};
 	}
@@ -218,7 +219,7 @@ public class LexerImpl extends AbstractLexer {
 		return new TokenImpl(TokenType.COMMENT, sb.toString());
 	}
 	
-	private Token nextColorCode() {
+	private Token nextColorCode(int hash) {
 		var lookahead = reader.lookahead(6);
 		var color = lookahead.codePoints()
 				.takeWhile(Char::isHexDigit)
@@ -227,9 +228,9 @@ public class LexerImpl extends AbstractLexer {
 		var length = color.length();
 		if (length == 6 || length == 3) {
 			skipChars(length);
-			return new TokenImpl(TokenType.COLOR_CODE, color);
+			return new TokenImpl(TokenType.COLOR_CODE, Character.toString(hash) + color);
 		}
-		return new TokenImpl(TokenType.ILLEGAL, color);
+		return new TokenImpl(TokenType.ILLEGAL, Character.toString(hash) + color);
 	}
 	
 	private void skipChars(int length) {

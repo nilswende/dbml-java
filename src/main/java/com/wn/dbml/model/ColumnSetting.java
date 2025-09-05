@@ -6,4 +6,10 @@ public enum ColumnSetting implements Setting {
 	UNIQUE,
 	INCREMENT,
 	DEFAULT,
+	;
+	
+	@Override
+	public String toString() {
+		return name().toLowerCase().replace('_', ' ');
+	}
 }

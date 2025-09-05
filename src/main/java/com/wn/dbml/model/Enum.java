@@ -1,11 +1,15 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class Enum {
+public class Enum implements DatabaseElement {
 	private final Schema schema;
 	private final String name;
 	private final Set<EnumValue> values = new LinkedHashSet<>();
@@ -52,5 +56,10 @@ public class Enum {
 	@Override
 	public String toString() {
 		return Name.of(schema, name);
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

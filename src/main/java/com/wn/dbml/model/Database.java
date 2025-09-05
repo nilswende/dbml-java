@@ -1,5 +1,9 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Chars;
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -10,14 +14,13 @@ import java.util.Set;
 /**
  * The top-level representation of a DBML file.
  */
-public class Database {
-	private static final String EMPTY = "";
+public class Database implements DatabaseElement {
 	private final Map<String, Schema> schemas = new LinkedHashMap<>();
 	private final Set<Relationship> relationships = new LinkedHashSet<>();
 	private final Map<String, NamedNote> namedNotes = new LinkedHashMap<>();
 	private final Map<String, TableGroup> tableGroups = new LinkedHashMap<>();
-	private final Map<String, Table> tablePartials = new LinkedHashMap<>();
-	private final Schema tablePartialsSchema = new Schema(EMPTY);
+	private final Map<String, TablePartial> tablePartials = new LinkedHashMap<>();
+	private final Schema tablePartialsSchema = new Schema(Chars.EMPTY);
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
@@ -37,14 +40,14 @@ public class Database {
 		return Collections.unmodifiableSet(new LinkedHashSet<>(schemas.values()));
 	}
 	
-	public boolean containsAlias(String alias) {
-		return getAlias(alias) != null;
+	public boolean containsAlias(String aliasName) {
+		return getAlias(aliasName) != null;
 	}
 	
-	public Table getAlias(String alias) {
+	public Table getAlias(String aliasName) {
 		return getSchemas().stream()
 				.flatMap(s -> s.getTables().stream())
-				.filter(t -> alias.equals(t.getAlias()))
+				.filter(t -> t.getAlias() != null && aliasName.equals(t.getAlias().getName()))
 				.findAny()
 				.orElse(null);
 	}
@@ -106,20 +109,20 @@ public class Database {
 		return getTablePartial(tableName) != null;
 	}
 	
-	public Table getTablePartial(String tableName) {
+	public TablePartial getTablePartial(String tableName) {
 		return tablePartials.get(tableName);
 	}
 	
-	public Table createTablePartial(String name) {
+	public TablePartial createTablePartial(String name) {
 		if (name.isEmpty()) {
 			throw new IllegalArgumentException("TablePartial must have a name");
 		}
-		var table = new Table(tablePartialsSchema, name);
+		var table = new TablePartial(tablePartialsSchema, name);
 		var added = tablePartials.putIfAbsent(name, table) == null;
 		return added ? table : null;
 	}
 	
-	public Set<Table> getTablePartials() {
+	public Set<TablePartial> getTablePartials() {
 		return Collections.unmodifiableSet(new LinkedHashSet<>(tablePartials.values()));
 	}
 	
@@ -139,5 +142,10 @@ public class Database {
 				", namedNotes=" + namedNotes +
 				", project=" + project +
 				'}';
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

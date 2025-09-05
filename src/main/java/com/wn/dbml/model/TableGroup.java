@@ -1,5 +1,8 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
@@ -7,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class TableGroup implements SettingHolder<TableGroupSetting> {
+public class TableGroup implements SettingHolder<TableGroupSetting>, DatabaseElement {
 	private final String name;
 	private final Map<TableGroupSetting, String> settings = new EnumMap<>(TableGroupSetting.class);
 	private final Set<Table> tables = new LinkedHashSet<>();
@@ -62,5 +65,10 @@ public class TableGroup implements SettingHolder<TableGroupSetting> {
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

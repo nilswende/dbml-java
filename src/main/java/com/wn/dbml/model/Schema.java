@@ -1,5 +1,8 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -7,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class Schema {
+public class Schema implements DatabaseElement {
 	public static final String DEFAULT_NAME = "public";
 	private final String name;
 	private final Map<String, Table> tables = new LinkedHashMap<>();
@@ -76,5 +79,10 @@ public class Schema {
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

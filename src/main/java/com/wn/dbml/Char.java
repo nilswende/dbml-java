@@ -1,6 +1,6 @@
-package com.wn.dbml.compiler.lexer;
+package com.wn.dbml;
 
-final class Char {
+public final class Char {
 	private Char() {
 	}
 	

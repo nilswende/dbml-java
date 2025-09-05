@@ -1,5 +1,9 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -8,13 +12,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class Table implements SettingHolder<TableSetting> {
+public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	private final Schema schema;
 	private final String name;
 	private final Map<TableSetting, String> settings = new EnumMap<>(TableSetting.class);
 	private final Map<String, Column> columns = new LinkedHashMap<>();
 	private final Set<Index> indexes = new LinkedHashSet<>();
-	private String alias;
+	private Alias alias;
 	private Note note;
 	
 	Table(Schema schema, String name) {
@@ -99,11 +103,11 @@ public class Table implements SettingHolder<TableSetting> {
 		return Collections.unmodifiableSet(indexes);
 	}
 	
-	public String getAlias() {
+	public Alias getAlias() {
 		return alias;
 	}
 	
-	public void setAlias(String alias) {
+	public void setAlias(Alias alias) {
 		this.alias = alias;
 	}
 	
@@ -131,5 +135,10 @@ public class Table implements SettingHolder<TableSetting> {
 	@Override
 	public String toString() {
 		return Name.of(schema, name);
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

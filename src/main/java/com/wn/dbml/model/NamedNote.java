@@ -1,11 +1,15 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class NamedNote implements SettingHolder<NamedNoteSetting> {
+public class NamedNote implements SettingHolder<NamedNoteSetting>, DatabaseElement {
 	private final String name;
 	private final Map<NamedNoteSetting, String> settings = new EnumMap<>(NamedNoteSetting.class);
 	private String value;
@@ -50,6 +54,11 @@ public class NamedNote implements SettingHolder<NamedNoteSetting> {
 	
 	@Override
 	public String toString() {
-		return "%s: %s".formatted(name, value);
+		return Name.of(name);
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

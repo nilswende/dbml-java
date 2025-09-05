@@ -1,5 +1,6 @@
 package com.wn.dbml.compiler.lexer;
 
+import com.wn.dbml.Char;
 import com.wn.dbml.compiler.Position;
 
 import java.io.BufferedReader;

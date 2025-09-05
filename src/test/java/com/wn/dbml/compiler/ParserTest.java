@@ -1,12 +1,12 @@
 package com.wn.dbml.compiler;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
 import com.wn.dbml.model.IndexSetting;
-import com.wn.dbml.model.Name;
 import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.RelationshipSetting;
 import com.wn.dbml.model.Schema;
@@ -271,11 +271,11 @@ class ParserTest {
 		assertEquals(1, schema.getTables().size());
 		var table = schema.getTable("users");
 		assertNotNull(table);
-		assertEquals("U", table.getAlias());
+		assertEquals("U", table.getAlias().getName());
 		var tableSettings = table.getSettings();
 		assertEquals(1, tableSettings.size());
 		assertTrue(tableSettings.containsKey(TableSetting.HEADERCOLOR));
-		assertEquals("3498DB", tableSettings.get(TableSetting.HEADERCOLOR));
+		assertEquals("#3498DB", tableSettings.get(TableSetting.HEADERCOLOR));
 		assertEquals(2, table.getColumns().size());
 		var id = table.getColumn("id");
 		assertEquals("id", id.getName());
@@ -328,8 +328,8 @@ class ParserTest {
 		assertEquals("User data", usersNote.getValue());
 		var id = users.getColumn("id");
 		assertNotNull(id);
-		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
-		assertNotNull(id.getSettings().get(ColumnSetting.INCREMENT));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.PRIMARY_KEY));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.INCREMENT));
 		var idNote = id.getNote();
 		assertNotNull(idNote);
 		assertEquals("Primary key", idNote.getValue());
@@ -354,8 +354,8 @@ class ParserTest {
 		var username = users.getColumn("username");
 		assertNotNull(username);
 		assertEquals("varchar(255)", username.getType());
-		assertNotNull(username.getSettings().get(ColumnSetting.NOT_NULL));
-		assertNotNull(username.getSettings().get(ColumnSetting.UNIQUE));
+		assertTrue(username.getSettings().containsKey(ColumnSetting.NOT_NULL));
+		assertTrue(username.getSettings().containsKey(ColumnSetting.UNIQUE));
 		var usersNote = users.getNote();
 		assertNotNull(usersNote);
 		assertEquals("Stores user data", usersNote.getValue());
@@ -462,8 +462,7 @@ class ParserTest {
 		var quantity = table.getColumn("quantity");
 		assertNotNull(quantity);
 		assertEquals("DECIMAL(10,2)", quantity.getType());
-		var setting = quantity.getSettings().get(ColumnSetting.NOT_NULL);
-		assertNotNull(setting);
+		assertTrue(quantity.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		var unit = table.getColumn("unit");
 		assertNotNull(unit);
 		
@@ -721,7 +720,7 @@ class ParserTest {
 		assertEquals(num, columns.size());
 		var column = columns.iterator().next();
 		if (columns.size() == 1) {
-			assertEquals(name, column.toString());
+			assertEquals(name, Name.of(column.getTable(), column.getName()));
 		} else {
 			var names = columns.stream().map(Column::getName).toList();
 			var schemaName = column.getTable().getSchema().getName();
@@ -812,7 +811,7 @@ class ParserTest {
 		validateRefColumn(ref.getTo(), 1, "table1.column1");
 		assertEquals("cascade", ref.getSettings().get(RelationshipSetting.DELETE));
 		assertEquals("no action", ref.getSettings().get(RelationshipSetting.UPDATE));
-		assertEquals("79AD51", ref.getSettings().get(RelationshipSetting.COLOR));
+		assertEquals("#79AD51", ref.getSettings().get(RelationshipSetting.COLOR));
 	}
 	
 	@Test
@@ -874,7 +873,7 @@ class ParserTest {
 		var delete = settings.get(RelationshipSetting.DELETE);
 		assertEquals("cascade", delete);
 		var color = settings.get(RelationshipSetting.COLOR);
-		assertEquals("aabbcc", color);
+		assertEquals("#aabbcc", color);
 	}
 	
 	@Test
@@ -1058,10 +1057,10 @@ class ParserTest {
 		assertNotNull(table);
 		var id = table.getColumn("id");
 		assertNotNull(id);
-		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		var name = table.getColumn("name");
 		assertNotNull(name);
-		assertNotNull(name.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(name.getSettings().containsKey(ColumnSetting.NOT_NULL));
 	}
 	
 	@Test
@@ -1236,7 +1235,7 @@ class ParserTest {
 						This is a multiple lines note
 						This string can spans over multiple lines.""",
 				multipleLinesNote.getValue());
-		assertEquals("fff", multipleLinesNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
+		assertEquals("#fff", multipleLinesNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
 	}
 	
 	@Test
@@ -1285,16 +1284,16 @@ class ParserTest {
 		assertNotNull(follows);
 		var followingUserId = follows.getColumn("following_user_id");
 		assertNotNull(followingUserId);
-		assertNull(followingUserId.getSettings().get(ColumnSetting.NOT_NULL));
+		assertFalse(followingUserId.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		var followedUserId = follows.getColumn("followed_user_id");
 		assertNotNull(followedUserId);
-		assertNull(followedUserId.getSettings().get(ColumnSetting.NOT_NULL));
+		assertFalse(followedUserId.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		
 		var posts = schema.getTable("posts");
 		assertNotNull(posts);
 		var userId = posts.getColumn("user_id");
 		assertNotNull(userId);
-		assertNotNull(userId.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(userId.getSettings().containsKey(ColumnSetting.NOT_NULL));
 	}
 	
 	@Test
@@ -1359,13 +1358,13 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var users = schema.getTable("users");
 		assertNotNull(users);
-		assertEquals("ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
+		assertEquals("#ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
 		assertEquals(7, users.getColumns().size());
 		var id = users.getColumn("id");
 		assertNotNull(id);
 		assertEquals("int", id.getType());
-		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
-		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.PRIMARY_KEY));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		var deleteStatus = users.getColumn("delete_status");
 		assertNotNull(deleteStatus);
 		assertEquals("boolean", deleteStatus.getType());
@@ -1414,13 +1413,13 @@ class ParserTest {
 		var schema = getDefaultSchema(database);
 		var users = schema.getTable("users");
 		assertNotNull(users);
-		assertEquals("ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
+		assertEquals("#ff0000", users.getSettings().get(TableSetting.HEADERCOLOR));
 		assertEquals(6, users.getColumns().size());
 		var id = users.getColumn("id");
 		assertNotNull(id);
 		assertEquals("int", id.getType());
-		assertNotNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
-		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.PRIMARY_KEY));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.NOT_NULL));
 	}
 	
 	@Test
@@ -1462,7 +1461,7 @@ class ParserTest {
 		assertNotNull(id);
 		assertEquals("bigint", id.getType());
 		assertNull(id.getSettings().get(ColumnSetting.PRIMARY_KEY));
-		assertNotNull(id.getSettings().get(ColumnSetting.NOT_NULL));
+		assertTrue(id.getSettings().containsKey(ColumnSetting.NOT_NULL));
 		var otherColumn = users.getColumn("other_column");
 		assertNotNull(otherColumn);
 		assertEquals("boolean", otherColumn.getType());
@@ -1565,6 +1564,6 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[1:37] A TablePartial shouldn't have an alias", e.getMessage());
+		assertEquals("[1:35] A TablePartial shouldn't have an alias", e.getMessage());
 	}
 }

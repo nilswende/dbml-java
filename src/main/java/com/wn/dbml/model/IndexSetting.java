@@ -5,4 +5,10 @@ public enum IndexSetting implements Setting {
 	NAME,
 	UNIQUE,
 	PK,
+	;
+	
+	@Override
+	public String toString() {
+		return name().toLowerCase();
+	}
 }

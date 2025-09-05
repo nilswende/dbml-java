@@ -1,11 +1,15 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
+import com.wn.dbml.visitor.DatabaseElement;
+import com.wn.dbml.visitor.DatabaseVisitor;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class Column implements SettingHolder<ColumnSetting> {
+public class Column implements SettingHolder<ColumnSetting>, DatabaseElement {
 	private final Table table;
 	private final String name, type;
 	private final Map<ColumnSetting, String> settings = new EnumMap<>(ColumnSetting.class);
@@ -68,6 +72,11 @@ public class Column implements SettingHolder<ColumnSetting> {
 	
 	@Override
 	public String toString() {
-		return Name.of(table, name);
+		return Name.of(name);
+	}
+	
+	@Override
+	public void accept(DatabaseVisitor visitor) {
+		visitor.visit(this);
 	}
 }

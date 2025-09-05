@@ -255,7 +255,7 @@ class LexerTest {
 		
 		if (expectedType == COLOR_CODE) {
 			assertEquals(List.of(expectedType, EOF), types);
-			assertEquals(color, tokenList.get(0).getValue());
+			assertEquals(dbml, tokenList.get(0).getValue());
 		} else {
 			assertEquals(List.of(expectedType), types);
 		}

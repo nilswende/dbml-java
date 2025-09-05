@@ -1,17 +1,18 @@
 package com.wn.dbml.compiler.parser;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.compiler.Lexer;
 import com.wn.dbml.compiler.Parser;
 import com.wn.dbml.compiler.ParsingException;
 import com.wn.dbml.compiler.Position;
 import com.wn.dbml.compiler.token.TokenType;
+import com.wn.dbml.model.Alias;
 import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
 import com.wn.dbml.model.EnumValue;
 import com.wn.dbml.model.Index;
 import com.wn.dbml.model.IndexSetting;
-import com.wn.dbml.model.Name;
 import com.wn.dbml.model.NamedNote;
 import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.Note;
@@ -69,7 +70,7 @@ public class ParserImpl implements Parser {
 					}
 				}
 			}
-		} catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException | UnsupportedOperationException e) {
 			error(e.getMessage());
 		}
 		injectTablePartials();
@@ -129,11 +130,11 @@ public class ParserImpl implements Parser {
 		next(AS, LBRACK, LBRACE);
 		if (typeIs(AS)) {
 			next(LITERAL, DSTRING); // alias
-			var alias = tokenValue();
-			if (database.containsAlias(alias)) {
-				error("Alias '%s' is already defined", alias);
+			var aliasName = tokenValue();
+			if (database.containsAlias(aliasName)) {
+				error("Alias '%s' is already defined", aliasName);
 			}
-			table.setAlias(alias);
+			table.setAlias(new Alias(aliasName));
 			next(LBRACK, LBRACE);
 		}
 		if (typeIs(LBRACK)) {
@@ -493,9 +494,6 @@ public class ParserImpl implements Parser {
 			error("TablePartial '%s' is already defined", tableName);
 		} else {
 			parseTableHead(partial);
-			if (partial.getAlias() != null) {
-				error("A TablePartial shouldn't have an alias");
-			}
 			parseTableBody(partial);
 		}
 	}
@@ -678,11 +676,13 @@ public class ParserImpl implements Parser {
 	}
 	
 	private <T extends Setting> void addSetting(SettingHolder<T> holder, T setting, TokenType... types) {
+		String value = null;
 		if (types != null && types.length > 0) {
 			next(COLON);
 			next(types);
+			value = tokenValue();
 		}
-		holder.addSetting(setting, tokenValue());
+		holder.addSetting(setting, value);
 	}
 	
 	private TokenType[] stringTypes() {
