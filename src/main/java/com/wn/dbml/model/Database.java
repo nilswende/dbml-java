@@ -131,7 +131,9 @@ public class Database implements DatabaseElement {
 	
 	@Override
 	public String toString() {
-		return "Database{}";
+		return "Database{" +
+				"project=" + project +
+				'}';
 	}
 	
 	@Override

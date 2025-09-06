@@ -14,7 +14,7 @@ public final class Name {
 	}
 	
 	private static String quote(String s) {
-		return !s.isBlank() && Chars.isWordChars(s) ? s : '"' + s + '"';
+		return s == null || !s.isBlank() && Chars.isWordChars(s) ? s : '"' + s + '"';
 	}
 	
 	public static String of(String name) {
