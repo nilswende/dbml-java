@@ -717,7 +717,7 @@ class ParserTest {
 	
 	private void validateRefColumn(List<Column> columns, int num, String name) {
 		assertEquals(num, columns.size());
-		var column = columns.iterator().next();
+		var column = columns.getFirst();
 		if (columns.size() == 1) {
 			assertEquals(name, Name.of(column.getTable(), column.getName()));
 		} else {

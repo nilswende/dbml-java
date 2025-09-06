@@ -151,7 +151,19 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(Relationship relationship) {
+		println(sb -> sb.append("Ref").append(relationshipName(relationship)).append(": ").append(relationship).append(relationshipSettings(relationship)));
+		println();
+	}
 	
+	private String relationshipName(Relationship relationship) {
+		return relationship.getName() == null ? Chars.EMPTY : " " + relationship.getName();
+	}
+	
+	private String relationshipSettings(Relationship relationship) {
+		return relationship.getSettings().isEmpty() ? Chars.EMPTY
+				: relationship.getSettings().entrySet().stream()
+				.map(e -> e.getValue() == null ? e.getKey().toString() : e.getKey() + ": " + e.getValue())
+				.collect(Collectors.joining(", ", " [", "]"));
 	}
 	
 	@Override

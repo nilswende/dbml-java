@@ -42,6 +42,6 @@ public final class Name {
 	}
 	
 	public static String ofColumns(String schema, String table, List<String> columns) {
-		return ofTable(schema, table) + ".(" + String.join(", ", columns) + ')';
+		return columns.size() < 2 ? ofColumn(schema, table, columns.getFirst()) : ofTable(schema, table) + ".(" + String.join(", ", columns) + ')';
 	}
 }

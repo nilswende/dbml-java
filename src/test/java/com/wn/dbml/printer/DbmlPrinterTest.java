@@ -92,6 +92,50 @@ class DbmlPrinterTest {
 	}
 	
 	@Test
+	void printRelationship() {
+		var dbml = """
+				Table table1 {
+				  id integer
+				  column1 integer
+				}
+				
+				Table table2 {
+				  id integer
+				  column2 integer
+				}
+				
+				Ref: table2.column2 - table1.column1""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Test
+	void printRelationshipComposite() {
+		var dbml = """
+				Table schema1.table1 {
+				  id integer
+				  column1 integer
+				}
+				
+				Table schema2.table2 {
+				  id integer
+				  column2 integer
+				}
+				
+				Ref r1: schema2.table2.(id, column2) - schema1.table1.(id, column1)""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Test
 	void printEnum() {
 		var dbml = """
 				enum job_status {
@@ -168,6 +212,7 @@ class DbmlPrinterTest {
 	
 	@Test
 	void printTablePartial() {
+		// 'now()' should be `now()`, but there's currently no way
 		var dbml = """
 				TablePartial base_template [headercolor: #ff0000] {
 				  id int [primary key, not null]

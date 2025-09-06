@@ -1,5 +1,6 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
@@ -62,7 +63,12 @@ public class Relationship implements SettingHolder<RelationshipSetting>, Databas
 	
 	@Override
 	public String toString() {
-		return from + " " + relation + " " + to;
+		return getColumns(from) + " " + relation + " " + getColumns(to);
+	}
+	
+	private String getColumns(List<Column> columns) {
+		var table = columns.getFirst().getTable();
+		return Name.ofColumns(table.getSchema().getName(), table.getName(), columns.stream().map(Column::getName).toList());
 	}
 	
 	@Override
