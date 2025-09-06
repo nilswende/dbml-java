@@ -298,6 +298,21 @@ class ParserTest {
 	}
 	
 	@Test
+	void testParseTableAliasEmpty() {
+		var dbml = """
+				Table users as "" {
+				  id integer
+				}""";
+		var database = parse(dbml);
+		
+		assertFalse(database.containsAlias(""));
+		var schema = getDefaultSchema(database);
+		var users = schema.getTable("users");
+		assertNotNull(users);
+		assertNull(users.getLocalNote());
+	}
+	
+	@Test
 	void testParseTableHeaderNote() {
 		var dbml = """
 				Table table1 [note: 'Note'] {
