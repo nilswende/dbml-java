@@ -153,7 +153,7 @@ class DbmlPrinterTest {
 				  created_at timestamp [default: 'now()']
 				  updated_at timestamp [default: 'now()']
 				
-				  Note: "base note"
+				  Note: 'base note'
 				}
 				
 				TablePartial soft_delete_template {

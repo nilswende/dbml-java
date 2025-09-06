@@ -528,18 +528,17 @@ public class ParserImpl implements Parser {
 	}
 	
 	private void injectTablePartials() {
-		tablePartialRefs.keySet().forEach(this::injectTablePartial);
-	}
-	
-	private void injectTablePartial(Table table) {
-		if (!tablePartialRefs.containsKey(table)) {
-			return;
-		}
-		for (var ref : tablePartialRefs.get(table).reversed()) {
-			var partial = database.getTablePartial(ref);
-			if (!partial.equals(table)) {
-				injectTablePartial(partial);
-				table.inject(partial);
+		for (var entry : tablePartialRefs.entrySet()) {
+			var table = entry.getKey();
+			for (var ref : entry.getValue()) {
+				var partial = database.getTablePartial(ref);
+				if (partial == null) {
+					error("Can not find TablePartial '%s'", ref);
+				} else {
+					if (!partial.equals(table)) {
+						table.addTablePartial(partial);
+					}
+				}
 			}
 		}
 	}

@@ -1566,4 +1566,16 @@ class ParserTest {
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertEquals("[1:35] A TablePartial shouldn't have an alias", e.getMessage());
 	}
+	
+	@Test
+	void testTablePartialMissing() {
+		var dbml = """
+				Table posts {
+				  ~base_template
+				  title varchar
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[4:1] Can not find TablePartial 'base_template'", e.getMessage());
+	}
 }

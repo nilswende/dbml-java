@@ -4,17 +4,18 @@ import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SequencedMap;
 import java.util.Set;
 
 public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	private final Schema schema;
 	private final String name;
+	private final SequencedMap<String, TablePartial> tablePartials = new LinkedHashMap<>();
 	private final Map<TableSetting, String> settings = new EnumMap<>(TableSetting.class);
 	private final Map<String, Column> columns = new LinkedHashMap<>();
 	private final Set<Index> indexes = new LinkedHashSet<>();
@@ -26,27 +27,6 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		this.name = Objects.requireNonNull(name);
 	}
 	
-	public void inject(Table other) {
-		Objects.requireNonNull(other);
-		// settings
-		for (var entry : other.settings.entrySet()) {
-			var setting = entry.getKey();
-			this.settings.putIfAbsent(setting, entry.getValue());
-		}
-		// columns
-		for (var column : other.columns.values()) {
-			this.columns.putIfAbsent(column.getName(), column.to(this));
-		}
-		// indexes
-		for (var index : other.indexes) {
-			this.indexes.add(index.to(this));
-		}
-		// note
-		if (this.note == null && other.note != null) {
-			this.note = other.note;
-		}
-	}
-	
 	public Schema getSchema() {
 		return schema;
 	}
@@ -55,13 +35,20 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		return name;
 	}
 	
+	public boolean addTablePartial(TablePartial tablePartial) {
+		Objects.requireNonNull(tablePartial);
+		return tablePartials.putIfAbsent(tablePartial.getName(), tablePartial) == null;
+	}
+	
 	@Override
 	public void addSetting(TableSetting setting, String value) {
 		settings.put(setting, value);
 	}
 	
 	public Map<TableSetting, String> getSettings() {
-		return Collections.unmodifiableMap(settings);
+		var result = new EnumMap<>(settings);
+		tablePartials.reversed().values().forEach(tp -> tp.getSettings().forEach(result::putIfAbsent));
+		return result;
 	}
 	
 	public boolean containsColumn(String columnName) {
@@ -69,7 +56,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Column getColumn(String columnName) {
-		return columns.get(columnName);
+		return gatherColumns().get(columnName);
 	}
 	
 	public Column addColumn(String columnName, String datatype) {
@@ -85,22 +72,31 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Set<Column> getColumns() {
-		return Collections.unmodifiableSet(new LinkedHashSet<>(columns.values()));
+		return new LinkedHashSet<>(gatherColumns().values());
+	}
+	
+	protected SequencedMap<String, Column> gatherColumns() {
+		var result = new LinkedHashMap<>(columns);
+		tablePartials.reversed().values().forEach(tp -> tp.gatherColumns().forEach(result::putIfAbsent));
+		return result;
 	}
 	
 	public Index getIndex(String indexName) {
 		return indexName == null ? null
-				: indexes.stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findAny().orElse(null);
+				: getIndexes().stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findAny().orElse(null);
 	}
 	
 	public Index addIndex() {
+		//TODO require columns?
 		var index = new Index(this);
 		var added = indexes.add(index);
 		return added ? index : null;
 	}
 	
 	public Set<Index> getIndexes() {
-		return Collections.unmodifiableSet(indexes);
+		var result = new LinkedHashSet<>(indexes);
+		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getIndexes()));
+		return result;
 	}
 	
 	public Alias getAlias() {
@@ -112,7 +108,8 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Note getNote() {
-		return note;
+		if (note != null) return note;
+		return tablePartials.reversed().values().stream().map(Table::getNote).filter(Objects::nonNull).findFirst().orElse(null);
 	}
 	
 	public void setNote(Note note) {
