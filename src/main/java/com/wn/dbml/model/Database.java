@@ -64,7 +64,7 @@ public class Database implements DatabaseElement {
 	}
 	
 	public Relationship getRelationship(String name) {
-		return relationships.stream().filter(r -> r.getName().equals(name)).findAny().orElse(null);
+		return relationships.stream().filter(r -> name.equals(r.getName())).findAny().orElse(null);
 	}
 	
 	public Set<Relationship> getRelationships() {
