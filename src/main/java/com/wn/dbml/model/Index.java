@@ -1,5 +1,6 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
@@ -25,7 +26,7 @@ public class Index implements SettingHolder<IndexSetting>, DatabaseElement {
 	}
 	
 	public boolean addColumn(String columnName) {
-		Objects.requireNonNull(columnName);
+		Name.requireNonEmpty(columnName);
 		return columns.putIfAbsent(columnName, table.getColumn(columnName)) == null;
 	}
 	

@@ -24,7 +24,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	
 	Table(Schema schema, String name) {
 		this.schema = Objects.requireNonNull(schema);
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.requireNonEmpty(name);
 	}
 	
 	public Schema getSchema() {
@@ -126,7 +126,9 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public void setAlias(Alias alias) {
-		this.alias = alias;
+		if (!alias.getName().isEmpty()) {
+			this.alias = alias;
+		}
 	}
 	
 	public Note getNote() {

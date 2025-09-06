@@ -53,7 +53,8 @@ public class Database implements DatabaseElement {
 	}
 	
 	public Relationship createRelationship(String name, Relation relation, List<Column> from, List<Column> to, Map<RelationshipSetting, String> settings) {
-		var relationship = new Relationship(name, relation, from, to, settings);
+		var relationship = new Relationship(name, relation, from, to);
+		settings.forEach(relationship::addSetting);
 		var added = relationships.add(relationship);
 		return added ? relationship : null;
 	}
@@ -71,9 +72,6 @@ public class Database implements DatabaseElement {
 	}
 	
 	public NamedNote addNamedNote(String name) {
-		if (name.isEmpty()) {
-			throw new IllegalArgumentException("NamedNote must have a name");
-		}
 		var namedNote = new NamedNote(name);
 		var added = namedNotes.putIfAbsent(name, namedNote) == null;
 		return added ? namedNote : null;
@@ -114,9 +112,6 @@ public class Database implements DatabaseElement {
 	}
 	
 	public TablePartial createTablePartial(String name) {
-		if (name.isEmpty()) {
-			throw new IllegalArgumentException("TablePartial must have a name");
-		}
 		var table = new TablePartial(tablePartialsSchema, name);
 		var added = tablePartials.putIfAbsent(name, table) == null;
 		return added ? table : null;
@@ -136,12 +131,7 @@ public class Database implements DatabaseElement {
 	
 	@Override
 	public String toString() {
-		return "Database{" +
-				"schemas=" + schemas +
-				", relationships=" + relationships +
-				", namedNotes=" + namedNotes +
-				", project=" + project +
-				'}';
+		return "Database{}";
 	}
 	
 	@Override

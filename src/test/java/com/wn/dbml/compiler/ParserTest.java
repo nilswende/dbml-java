@@ -29,7 +29,7 @@ class ParserTest {
 	@Test
 	void testParseProject() {
 		var dbml = """
-				Project project_name {
+				Project "" {
 				  database_type: 'PostgreSQL'
 				  Note: 'Description of the project'
 				}""";
@@ -37,7 +37,7 @@ class ParserTest {
 		
 		assertNotNull(database.getProject());
 		var project = database.getProject();
-		assertEquals("project_name", project.getName());
+		assertNull(project.getName());
 		var properties = project.getProperties();
 		assertEquals(1, properties.size());
 		assertTrue(properties.containsKey("database_type"));
@@ -238,7 +238,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[1:7] NamedNote must have a name", e.getMessage());
+		assertEquals("[1:7] Name must not be empty", e.getMessage());
 	}
 	
 	@Test
@@ -249,7 +249,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[1:15] TablePartial must have a name", e.getMessage());
+		assertEquals("[1:15] Name must not be empty", e.getMessage());
 	}
 	
 	@Test

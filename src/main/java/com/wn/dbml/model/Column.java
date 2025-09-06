@@ -17,8 +17,8 @@ public class Column implements SettingHolder<ColumnSetting>, DatabaseElement {
 	
 	Column(Table table, String name, String type) {
 		this.table = Objects.requireNonNull(table);
-		this.name = Objects.requireNonNull(name);
-		this.type = Objects.requireNonNull(type);
+		this.name = Name.requireNonEmpty(name);
+		this.type = Name.requireNonEmpty(type);
 	}
 	
 	public Table getTable() {

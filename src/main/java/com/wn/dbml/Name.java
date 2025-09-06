@@ -44,4 +44,15 @@ public final class Name {
 	public static String ofColumns(String schema, String table, List<String> columns) {
 		return columns.size() < 2 ? ofColumn(schema, table, columns.getFirst()) : ofTable(schema, table) + ".(" + String.join(", ", columns) + ')';
 	}
+	
+	public static String nullIfEmpty(String name) {
+		return name != null && name.isEmpty() ? null : name;
+	}
+	
+	public static String requireNonEmpty(String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Name must not be empty");
+		}
+		return name;
+	}
 }

@@ -18,7 +18,7 @@ public class TableGroup implements SettingHolder<TableGroupSetting>, DatabaseEle
 	private Note note;
 	
 	TableGroup(String name) {
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.requireNonEmpty(name);
 	}
 	
 	public String getName() {

@@ -16,7 +16,7 @@ public class Enum implements DatabaseElement {
 	
 	Enum(Schema schema, String name) {
 		this.schema = Objects.requireNonNull(schema);
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.requireNonEmpty(name);
 	}
 	
 	public Schema getSchema() {

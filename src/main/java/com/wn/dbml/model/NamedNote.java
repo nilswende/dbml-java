@@ -11,7 +11,7 @@ public class NamedNote implements DatabaseElement {
 	private String value;
 	
 	public NamedNote(String name) {
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.requireNonEmpty(name);
 	}
 	
 	public String getName() {
@@ -19,7 +19,7 @@ public class NamedNote implements DatabaseElement {
 	}
 	
 	public void setValue(String value) {
-		this.value = value;
+		this.value = Objects.requireNonNull(value);
 	}
 	
 	public String getValue() {

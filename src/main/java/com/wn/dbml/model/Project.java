@@ -6,7 +6,6 @@ import com.wn.dbml.visitor.DatabaseVisitor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class Project implements DatabaseElement {
 	private final String name;
@@ -14,7 +13,7 @@ public class Project implements DatabaseElement {
 	private Note note;
 	
 	public Project(String name) {
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.nullIfEmpty(name);
 	}
 	
 	public String getName() {

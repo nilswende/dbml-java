@@ -5,6 +5,7 @@ import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,14 +14,13 @@ public class Relationship implements SettingHolder<RelationshipSetting>, Databas
 	private final String name;
 	private final Relation relation;
 	private final List<Column> from, to;
-	private final Map<RelationshipSetting, String> settings;
+	private final Map<RelationshipSetting, String> settings = new EnumMap<>(RelationshipSetting.class);
 	
-	Relationship(String name, Relation relation, List<Column> from, List<Column> to, Map<RelationshipSetting, String> settings) {
-		this.name = name;
+	Relationship(String name, Relation relation, List<Column> from, List<Column> to) {
+		this.name = Name.nullIfEmpty(name);
 		this.relation = Objects.requireNonNull(relation);
 		this.from = Objects.requireNonNull(from);
 		this.to = Objects.requireNonNull(to);
-		this.settings = Objects.requireNonNull(settings);
 	}
 	
 	public String getName() {
@@ -32,11 +32,11 @@ public class Relationship implements SettingHolder<RelationshipSetting>, Databas
 	}
 	
 	public List<Column> getFrom() {
-		return from;
+		return Collections.unmodifiableList(from);
 	}
 	
 	public List<Column> getTo() {
-		return to;
+		return Collections.unmodifiableList(to);
 	}
 	
 	@Override
