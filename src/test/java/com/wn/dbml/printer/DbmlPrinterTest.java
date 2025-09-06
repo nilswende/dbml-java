@@ -3,7 +3,6 @@ package com.wn.dbml.printer;
 import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Database;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -144,7 +143,6 @@ class DbmlPrinterTest {
 		assertEquals(dbml, printer.toString());
 	}
 	
-	@Disabled
 	@Test
 	void printTablePartial() {
 		var dbml = """

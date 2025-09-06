@@ -168,18 +168,19 @@ public class DbmlPrinter implements DatabaseVisitor {
 	private void printTable(Table table, String name) {
 		println(sb -> sb.append(name).append(table).append(tableAlias(table)).append(tableSettings(table)).append(" {"));
 		level++;
-		table.getColumns().forEach(c -> c.accept(this));
-		if (!table.getIndexes().isEmpty()) {
+		table.getLocalTablePartials().forEach(tp -> println(sb -> sb.append('~').append(tp)));
+		table.getLocalColumns().forEach(c -> c.accept(this));
+		if (!table.getLocalIndexes().isEmpty()) {
 			println();
 			println(sb -> sb.append("indexes").append(" {"));
 			level++;
-			table.getIndexes().forEach(i -> i.accept(this));
+			table.getLocalIndexes().forEach(i -> i.accept(this));
 			level--;
 			println(sb -> sb.append('}'));
 		}
-		if (table.getNote() != null && !table.getNote().getValue().isBlank()) {
+		if (table.getLocalNote() != null && !table.getLocalNote().getValue().isBlank()) {
 			println();
-			println(sb -> sb.append("Note: ").append(quoteString(table.getNote().getValue())));
+			println(sb -> sb.append("Note: ").append(quoteString(table.getLocalNote().getValue())));
 		}
 		endLevel();
 	}
@@ -189,8 +190,8 @@ public class DbmlPrinter implements DatabaseVisitor {
 	}
 	
 	private String tableSettings(Table table) {
-		return table.getSettings().isEmpty() ? Chars.EMPTY
-				: table.getSettings().entrySet().stream()
+		return table.getLocalSettings().isEmpty() ? Chars.EMPTY
+				: table.getLocalSettings().entrySet().stream()
 				.map(e -> e.getValue() == null ? e.getKey().toString() : e.getKey() + ": " + e.getValue())
 				.collect(Collectors.joining(", ", " [", "]"));
 	}

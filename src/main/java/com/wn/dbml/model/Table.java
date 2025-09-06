@@ -40,6 +40,16 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		return tablePartials.putIfAbsent(tablePartial.getName(), tablePartial) == null;
 	}
 	
+	public Set<TablePartial> getTablePartials() {
+		var result = new LinkedHashSet<>(tablePartials.values());
+		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getTablePartials()));
+		return result;
+	}
+	
+	public Set<TablePartial> getLocalTablePartials() {
+		return new LinkedHashSet<>(tablePartials.values());
+	}
+	
 	@Override
 	public void addSetting(TableSetting setting, String value) {
 		settings.put(setting, value);
@@ -49,6 +59,10 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		var result = new EnumMap<>(settings);
 		tablePartials.reversed().values().forEach(tp -> tp.getSettings().forEach(result::putIfAbsent));
 		return result;
+	}
+	
+	public Map<TableSetting, String> getLocalSettings() {
+		return new EnumMap<>(settings);
 	}
 	
 	public boolean containsColumn(String columnName) {
@@ -75,15 +89,19 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		return new LinkedHashSet<>(gatherColumns().values());
 	}
 	
-	protected SequencedMap<String, Column> gatherColumns() {
+	protected final SequencedMap<String, Column> gatherColumns() {
 		var result = new LinkedHashMap<>(columns);
 		tablePartials.reversed().values().forEach(tp -> tp.gatherColumns().forEach(result::putIfAbsent));
 		return result;
 	}
 	
+	public Set<Column> getLocalColumns() {
+		return new LinkedHashSet<>(columns.values());
+	}
+	
 	public Index getIndex(String indexName) {
 		return indexName == null ? null
-				: getIndexes().stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findAny().orElse(null);
+				: getIndexes().stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findFirst().orElse(null);
 	}
 	
 	public Index addIndex() {
@@ -97,6 +115,10 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 		var result = new LinkedHashSet<>(indexes);
 		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getIndexes()));
 		return result;
+	}
+	
+	public Set<Index> getLocalIndexes() {
+		return new LinkedHashSet<>(indexes);
 	}
 	
 	public Alias getAlias() {
@@ -114,6 +136,10 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	
 	public void setNote(Note note) {
 		this.note = note;
+	}
+	
+	public Note getLocalNote() {
+		return note;
 	}
 	
 	@Override
