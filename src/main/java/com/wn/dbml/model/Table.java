@@ -87,7 +87,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	
 	protected final SequencedMap<String, Column> gatherColumns() {
 		var result = new LinkedHashMap<>(columns);
-		tablePartials.reversed().values().forEach(tp -> tp.gatherColumns().forEach(result::putIfAbsent));
+		tablePartials.reversed().values().forEach(tp -> tp.gatherColumns().forEach((n, c) -> result.putIfAbsent(n, c.to(this))));
 		return result;
 	}
 	
@@ -108,7 +108,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	
 	public Set<Index> getIndexes() {
 		var result = new LinkedHashSet<>(indexes);
-		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getIndexes()));
+		tablePartials.reversed().values().forEach(tp -> tp.getIndexes().forEach(i -> result.add(i.to(this))));
 		return Collections.unmodifiableSet(result);
 	}
 	

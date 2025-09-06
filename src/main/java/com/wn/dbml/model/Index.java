@@ -26,6 +26,13 @@ public class Index implements SettingHolder<IndexSetting>, DatabaseElement {
 		}
 	}
 	
+	Index to(Table other) {
+		var index = new Index(other, columns);
+		index.settings.putAll(this.settings);
+		index.note = this.note;
+		return index;
+	}
+	
 	public Table getTable() {
 		return table;
 	}

@@ -118,6 +118,8 @@ class DbmlPrinterTest {
 				  column2 integer
 				}
 				
+				Ref: table2.id - table1.id
+				
 				Ref: table2.column2 - table1.column1""";
 		var database = parse(dbml);
 		
@@ -254,6 +256,46 @@ class DbmlPrinterTest {
 				  ~soft_delete_template
 				  ~email_index
 				  name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Test
+	void printDatabase() {
+		var dbml = """
+				Project project_name {
+				}
+				
+				enum e {
+				  val1
+				  val2
+				  val3
+				}
+				
+				TablePartial base {
+				  id integer
+				}
+				
+				Table t1 {
+				  ~base
+				  name varchar(255)
+				  status e
+				}
+				
+				Table t2 {
+				  id integer
+				}
+				
+				Ref: t1.id - t2.id
+				
+				TableGroup tbls {
+				  t1
+				  t2
 				}""";
 		var database = parse(dbml);
 		
