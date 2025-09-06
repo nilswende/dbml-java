@@ -3,6 +3,7 @@ package com.wn.dbml.printer;
 import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Database;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,7 +52,7 @@ class DbmlPrinterTest {
 				Table s.users as U [headercolor: #3498DB] {
 				  id integer [primary key, increment, note: 'replace text here']
 				  username varchar(255) [not null, unique, default: null]
-				  weight "bigint unsigned" [default: 1.23]
+				  size "bigint unsigned" [default: 1.23]
 				
 				  Note: 'Stores user data'
 				}""";
@@ -104,6 +105,75 @@ class DbmlPrinterTest {
 				Table jobs {
 				  id integer
 				  status job_status
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Test
+	void printTableGroup() {
+		var dbml = """
+				Table table1 {
+				  id integer
+				}
+				
+				Table table2 {
+				  id integer
+				}
+				
+				Table table3 as C {
+				  id integer
+				}
+				
+				TableGroup tablegroup_name [color: #fff] {
+				  table1
+				  table2
+				  C
+				
+				  Note: 'group note element'
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Disabled
+	@Test
+	void printTablePartial() {
+		var dbml = """
+				TablePartial base_template [headercolor: #ff0000] {
+				  id int [primary key, not null]
+				  created_at timestamp [default: 'now()']
+				  updated_at timestamp [default: 'now()']
+				
+				  Note: "base note"
+				}
+				
+				TablePartial soft_delete_template {
+				  delete_status boolean [not null]
+				  deleted_at timestamp [default: 'now()']
+				}
+				
+				TablePartial email_index {
+				  email varchar [unique]
+				
+				  indexes {
+				    email [name: 'U__email', unique]
+				  }
+				}
+				
+				Table users {
+				  ~base_template
+				  ~soft_delete_template
+				  ~email_index
+				  name varchar
 				}""";
 		var database = parse(dbml);
 		

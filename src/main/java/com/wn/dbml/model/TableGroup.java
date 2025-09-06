@@ -1,5 +1,6 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
@@ -64,7 +65,7 @@ public class TableGroup implements SettingHolder<TableGroupSetting>, DatabaseEle
 	
 	@Override
 	public String toString() {
-		return name;
+		return Name.of(name);
 	}
 	
 	@Override

@@ -34,7 +34,7 @@ public final class Name {
 	}
 	
 	public static String ofTable(String schema, String table) {
-		return schema.equals(Schema.DEFAULT_NAME) ? of(table) : of(schema) + '.' + of(table);
+		return schema.isEmpty() || schema.equals(Schema.DEFAULT_NAME) ? of(table) : of(schema) + '.' + of(table);
 	}
 	
 	public static String ofColumn(String schema, String table, String column) {

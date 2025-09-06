@@ -121,10 +121,7 @@ public class DbmlPrinter implements DatabaseVisitor {
 	private String indexSettings(Index index) {
 		var list = new ArrayList<String>();
 		if (!index.getSettings().isEmpty()) {
-			index.getSettings().forEach((k, v) -> {
-				
-				list.add(v == null ? k.toString() : k + ": " + (k == IndexSetting.NAME ? quoteString(v) : v));
-			});
+			index.getSettings().forEach((k, v) -> list.add(v == null ? k.toString() : k + ": " + (k == IndexSetting.NAME ? quoteString(v) : v)));
 		}
 		if (index.getNote() != null && !index.getNote().getValue().isBlank()) {
 			list.add("note: " + quoteString(index.getNote().getValue()));
@@ -165,7 +162,11 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(Table table) {
-		println(sb -> sb.append("Table ").append(table).append(tableAlias(table)).append(tableSettings(table)).append(" {"));
+		printTable(table, "Table ");
+	}
+	
+	private void printTable(Table table, String name) {
+		println(sb -> sb.append(name).append(table).append(tableAlias(table)).append(tableSettings(table)).append(" {"));
 		level++;
 		table.getColumns().forEach(c -> c.accept(this));
 		if (!table.getIndexes().isEmpty()) {
@@ -196,16 +197,31 @@ public class DbmlPrinter implements DatabaseVisitor {
 	
 	@Override
 	public void visit(TableGroup tableGroup) {
+		println(sb -> sb.append("TableGroup ").append(tableGroup).append(tableGroupSettings(tableGroup)).append(" {"));
+		level++;
+		tableGroup.getTables().forEach(t -> println(sb -> sb.append(t.getAlias() == null ? t : t.getAlias())));
+		if (tableGroup.getNote() != null && !tableGroup.getNote().getValue().isBlank()) {
+			println();
+			println(sb -> sb.append("Note: ").append(quoteString(tableGroup.getNote().getValue())));
+		}
+		endLevel();
+	}
 	
+	private String tableGroupSettings(TableGroup tableGroup) {
+		return tableGroup.getSettings().isEmpty() ? Chars.EMPTY
+				: tableGroup.getSettings().entrySet().stream()
+				.map(e -> e.getValue() == null ? e.getKey().toString() : e.getKey() + ": " + e.getValue())
+				.collect(Collectors.joining(", ", " [", "]"));
 	}
 	
 	@Override
 	public void visit(TablePartial tablePartial) {
-	
+		printTable(tablePartial, "TablePartial ");
 	}
 	
 	@Override
 	public String toString() {
-		return sb.delete(sb.length() - 2, sb.length()).toString();
+		var len = formatter.getLinebreak().length();
+		return sb.delete(sb.length() - 2 * len, sb.length()).toString();
 	}
 }
