@@ -10,7 +10,7 @@ Example usage:
 import com.wn.dbml.compiler.DbmlParser;
 import com.wn.dbml.model.Database;
 
-class Example {
+class ParserExample {
   public static void main(String[] args) {
     var dbml = """
         Table table1 {
@@ -28,6 +28,28 @@ class Example {
 
 For more elaborate examples see the [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro) or the
 [`DbmlPrinter`](src/main/java/com/wn/dbml/printer/DbmlPrinter.java) in this repository.
+
+Example usage:
+
+```java
+import com.wn.dbml.compiler.DbmlParser;
+import com.wn.dbml.printer.DbmlPrinter;
+
+class PrinterExample {
+	public static void main(String[] args) {
+		var dbml = """
+				Table table1 {
+				  id integer
+				}""";
+		// parse the dbml
+		var database = DbmlParser.parse(dbml);
+		// print the database structure
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		System.out.println(printer); // prints the above dbml
+	}
+}
+```
 
 Maven dependency:
 ```xml
