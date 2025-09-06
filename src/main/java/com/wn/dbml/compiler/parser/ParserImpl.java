@@ -13,8 +13,6 @@ import com.wn.dbml.model.Database;
 import com.wn.dbml.model.EnumValue;
 import com.wn.dbml.model.Index;
 import com.wn.dbml.model.IndexSetting;
-import com.wn.dbml.model.NamedNote;
-import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.Note;
 import com.wn.dbml.model.Project;
 import com.wn.dbml.model.Relation;
@@ -505,25 +503,11 @@ public class ParserImpl implements Parser {
 		if (namedNote == null) {
 			error("NamedNote '%s' is already defined", noteName);
 		} else {
-			next(LBRACK, LBRACE);
-			if (typeIs(LBRACK)) {
-				do {
-					next(HEADERCOLOR);
-					parseNamedNoteSetting(namedNote);
-					next(COMMA, RBRACK);
-				} while (!typeIs(RBRACK));
-				next(LBRACE);
-			}
+			next(LBRACE);
 			next(stringTypes());
 			var value = tokenValue();
 			namedNote.setValue(value);
 			next(RBRACE);
-		}
-	}
-	
-	private void parseNamedNoteSetting(NamedNote namedNote) {
-		if (typeIs(HEADERCOLOR)) {
-			addSetting(namedNote, NamedNoteSetting.HEADERCOLOR, COLOR_CODE);
 		}
 	}
 	

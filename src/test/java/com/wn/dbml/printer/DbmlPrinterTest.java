@@ -114,6 +114,29 @@ class DbmlPrinterTest {
 	}
 	
 	@Test
+	void printNamedNote() {
+		var dbml = """
+				Table table1 {
+				  table integer
+				}
+				
+				Note single_line_note {
+				  'This is a single line note'
+				}
+				
+				Note multiple_lines_note {
+				  '''This is a multiple lines note
+				     This string can spans over multiple lines.'''
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter();
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString());
+	}
+	
+	@Test
 	void printTableGroup() {
 		var dbml = """
 				Table table1 {

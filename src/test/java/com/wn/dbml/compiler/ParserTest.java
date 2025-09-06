@@ -7,7 +7,6 @@ import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
 import com.wn.dbml.model.IndexSetting;
-import com.wn.dbml.model.NamedNoteSetting;
 import com.wn.dbml.model.RelationshipSetting;
 import com.wn.dbml.model.Schema;
 import com.wn.dbml.model.TableSetting;
@@ -1215,7 +1214,7 @@ class ParserTest {
 				  'This is a single line note'
 				}
 				
-				Note multiple_lines_note [headercolor: #fff] {
+				Note multiple_lines_note {
 				'''
 				  This is a multiple lines note
 				  This string can spans over multiple lines.
@@ -1228,14 +1227,23 @@ class ParserTest {
 		var singleLineNote = database.getNamedNote("single_line_note");
 		assertNotNull(singleLineNote);
 		assertEquals("This is a single line note", singleLineNote.getValue());
-		assertNull(singleLineNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
 		var multipleLinesNote = database.getNamedNote("multiple_lines_note");
 		assertNotNull(multipleLinesNote);
 		assertEquals("""
 						This is a multiple lines note
 						This string can spans over multiple lines.""",
 				multipleLinesNote.getValue());
-		assertEquals("#fff", multipleLinesNote.getSettings().get(NamedNoteSetting.HEADERCOLOR));
+	}
+	
+	@Test
+	void testNamedNoteSettings() {
+		var dbml = """
+				Note single_line_note [headercolor: #fff] {
+				  'This is a single line note'
+				}""";
+		
+		// was valid once, but not anymore
+		assertThrows(ParsingException.class, () -> parse(dbml));
 	}
 	
 	@Test

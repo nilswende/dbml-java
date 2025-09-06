@@ -4,14 +4,10 @@ import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Objects;
 
-public class NamedNote implements SettingHolder<NamedNoteSetting>, DatabaseElement {
+public class NamedNote implements DatabaseElement {
 	private final String name;
-	private final Map<NamedNoteSetting, String> settings = new EnumMap<>(NamedNoteSetting.class);
 	private String value;
 	
 	public NamedNote(String name) {
@@ -20,15 +16,6 @@ public class NamedNote implements SettingHolder<NamedNoteSetting>, DatabaseEleme
 	
 	public String getName() {
 		return name;
-	}
-	
-	@Override
-	public void addSetting(NamedNoteSetting setting, String value) {
-		settings.put(setting, value);
-	}
-	
-	public Map<NamedNoteSetting, String> getSettings() {
-		return Collections.unmodifiableMap(settings);
 	}
 	
 	public void setValue(String value) {
