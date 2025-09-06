@@ -29,12 +29,12 @@ import com.wn.dbml.model.TableSetting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedSet;
 
 import static com.wn.dbml.compiler.token.TokenType.*;
 
@@ -43,7 +43,7 @@ import static com.wn.dbml.compiler.token.TokenType.*;
  */
 public class ParserImpl implements Parser {
 	private List<RelationshipDefinition> relationshipDefinitions;
-	private Map<Table, LinkedHashSet<String>> tablePartialRefs;
+	private Map<Table, SequencedSet<String>> tablePartialRefs;
 	private TokenAccess tokenAccess;
 	private Database database;
 	
@@ -535,9 +535,7 @@ public class ParserImpl implements Parser {
 		if (!tablePartialRefs.containsKey(table)) {
 			return;
 		}
-		var refList = new ArrayList<>(tablePartialRefs.get(table));
-		Collections.reverse(refList);
-		for (var ref : refList) { // Java 21: tablePartialRefs.reversed()
+		for (var ref : tablePartialRefs.get(table).reversed()) {
 			var partial = database.getTablePartial(ref);
 			if (!partial.equals(table)) {
 				injectTablePartial(partial);
