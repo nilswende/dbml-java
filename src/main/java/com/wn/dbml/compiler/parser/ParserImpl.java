@@ -1,6 +1,5 @@
 package com.wn.dbml.compiler.parser;
 
-import com.wn.dbml.Name;
 import com.wn.dbml.compiler.Lexer;
 import com.wn.dbml.compiler.Parser;
 import com.wn.dbml.compiler.ParsingException;
@@ -24,6 +23,7 @@ import com.wn.dbml.model.Table;
 import com.wn.dbml.model.TableGroup;
 import com.wn.dbml.model.TableGroupSetting;
 import com.wn.dbml.model.TableSetting;
+import com.wn.dbml.util.Name;
 
 import java.util.ArrayList;
 import java.util.Arrays;

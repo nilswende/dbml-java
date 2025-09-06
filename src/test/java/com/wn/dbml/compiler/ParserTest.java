@@ -1,6 +1,5 @@
 package com.wn.dbml.compiler;
 
-import com.wn.dbml.Name;
 import com.wn.dbml.compiler.lexer.LexerImpl;
 import com.wn.dbml.compiler.parser.ParserImpl;
 import com.wn.dbml.model.Column;
@@ -10,6 +9,7 @@ import com.wn.dbml.model.IndexSetting;
 import com.wn.dbml.model.RelationshipSetting;
 import com.wn.dbml.model.Schema;
 import com.wn.dbml.model.TableSetting;
+import com.wn.dbml.util.Name;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

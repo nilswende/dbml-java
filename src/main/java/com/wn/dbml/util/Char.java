@@ -1,4 +1,4 @@
-package com.wn.dbml;
+package com.wn.dbml.util;
 
 public final class Char {
 	private Char() {

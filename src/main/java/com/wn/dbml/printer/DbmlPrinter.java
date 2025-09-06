@@ -1,7 +1,5 @@
 package com.wn.dbml.printer;
 
-import com.wn.dbml.Char;
-import com.wn.dbml.Chars;
 import com.wn.dbml.model.Column;
 import com.wn.dbml.model.ColumnSetting;
 import com.wn.dbml.model.Database;
@@ -16,6 +14,8 @@ import com.wn.dbml.model.Schema;
 import com.wn.dbml.model.Table;
 import com.wn.dbml.model.TableGroup;
 import com.wn.dbml.model.TablePartial;
+import com.wn.dbml.util.Char;
+import com.wn.dbml.util.Chars;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
 import java.util.ArrayList;

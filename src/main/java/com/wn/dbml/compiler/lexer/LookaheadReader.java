@@ -1,7 +1,7 @@
 package com.wn.dbml.compiler.lexer;
 
-import com.wn.dbml.Char;
 import com.wn.dbml.compiler.Position;
+import com.wn.dbml.util.Char;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package com.wn.dbml.model;
 
-import com.wn.dbml.Name;
+import com.wn.dbml.util.Name;
 
 import java.util.Objects;
 

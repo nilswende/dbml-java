@@ -1,6 +1,6 @@
 package com.wn.dbml.model;
 
-import com.wn.dbml.CollectionUtil;
+import com.wn.dbml.util.CollectionUtil;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 

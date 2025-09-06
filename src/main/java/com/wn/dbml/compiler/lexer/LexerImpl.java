@@ -1,9 +1,9 @@
 package com.wn.dbml.compiler.lexer;
 
-import com.wn.dbml.Char;
 import com.wn.dbml.compiler.Token;
 import com.wn.dbml.compiler.token.TokenImpl;
 import com.wn.dbml.compiler.token.TokenType;
+import com.wn.dbml.util.Char;
 
 import java.io.Reader;
 

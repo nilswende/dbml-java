@@ -1,4 +1,4 @@
-package com.wn.dbml;
+package com.wn.dbml.util;
 
 import java.util.Arrays;
 
