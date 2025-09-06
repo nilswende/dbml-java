@@ -7,6 +7,7 @@ import com.wn.dbml.visitor.DatabaseVisitor;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SequencedMap;
@@ -98,9 +99,8 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 				: getIndexes().stream().filter(i -> indexName.equals(i.getSettings().get(IndexSetting.NAME))).findFirst().orElse(null);
 	}
 	
-	public Index addIndex() {
-		//TODO require columns?
-		var index = new Index(this);
+	public Index addIndex(List<String> columns) {
+		var index = new Index(this, columns);
 		var added = indexes.add(index);
 		return added ? index : null;
 	}

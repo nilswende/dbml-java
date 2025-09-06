@@ -1,37 +1,37 @@
 package com.wn.dbml.model;
 
-import com.wn.dbml.Name;
+import com.wn.dbml.CollectionUtil;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Index implements SettingHolder<IndexSetting>, DatabaseElement {
 	private final Table table;
-	private final Map<String, Column> columns = new LinkedHashMap<>();
+	private final List<String> columns;
 	private final Map<IndexSetting, String> settings = new EnumMap<>(IndexSetting.class);
 	private Note note;
 	
-	Index(Table table) {
+	Index(Table table, List<String> columns) {
 		this.table = Objects.requireNonNull(table);
+		this.columns = Objects.requireNonNull(columns);
+		var duplicate = CollectionUtil.firstDuplicate(columns);
+		if (duplicate != null) {
+			throw new IllegalArgumentException("Column '%s' is already defined".formatted(duplicate));
+		}
 	}
 	
 	public Table getTable() {
 		return table;
 	}
 	
-	public boolean addColumn(String columnName) {
-		Name.requireNonEmpty(columnName);
-		return columns.putIfAbsent(columnName, table.getColumn(columnName)) == null;
-	}
-	
-	public Map<String, Column> getColumns() {
-		return Collections.unmodifiableMap(columns);
+	public List<String> getColumns() {
+		return Collections.unmodifiableList(columns);
 	}
 	
 	@Override
@@ -53,9 +53,8 @@ public class Index implements SettingHolder<IndexSetting>, DatabaseElement {
 	
 	@Override
 	public String toString() {
-		var string = columns.entrySet()
-				.stream()
-				.map(e -> e.getValue() == null ? '`' + e.getKey() + '`' : e.getKey())
+		var string = columns.stream()
+				.map(c -> table.containsColumn(c) ? c : '`' + c + '`')
 				.collect(Collectors.joining(", "));
 		return columns.size() > 1 ? '(' + string + ')' : string;
 	}
