@@ -3,7 +3,7 @@
 Database Markup Language (DBML), designed to define and document database structures.
 See the [original repository](https://github.com/holistics/dbml).
 
-Using Java 17.
+Using Java 21.
 
 Example usage:
 ```java
