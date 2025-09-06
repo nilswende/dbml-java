@@ -29,7 +29,7 @@ class DbmlPrinterTest {
 	@Test
 	void printProject() {
 		var dbml = """
-				Project project_name {
+				Project project_name_愛 {
 				  database_type: 'PostgreSQL'
 				
 				  Note: 'Description of the project'

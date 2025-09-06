@@ -81,7 +81,7 @@ class LexerTest {
 	@ParameterizedTest
 	@MethodSource
 	void testString(char quote, TokenType expectedType) {
-		var str = "test string \\ with unicode 倀";
+		var str = "test string \\ with unicode 愛";
 		var dbml = quote + str + quote;
 		var lexer = getLexer(dbml);
 		
@@ -103,7 +103,7 @@ class LexerTest {
 	@Test
 	void testStringEscapedQuote() {
 		var quote = "'";
-		var str = "test string \\" + quote + " with unicode 倀";
+		var str = "test string \\" + quote + " with unicode 愛";
 		var dbml = quote + str + quote;
 		var lexer = getLexer(dbml);
 		
@@ -116,7 +116,7 @@ class LexerTest {
 	
 	@Test
 	void testStringEOF() {
-		var dbml = "'test string with unicode 倀";
+		var dbml = "'test string with unicode 愛";
 		var lexer = getLexer(dbml);
 		
 		var tokenList = lexer.tokenList();
@@ -130,7 +130,7 @@ class LexerTest {
 		var dbml = """
 				'''
 				
-				test string with unicode 倀
+				test string with unicode 愛
 				  indented \\
 				  continued \\\\
 				  escaped \\'''
@@ -143,7 +143,7 @@ class LexerTest {
 		
 		assertEquals(List.of(TSTRING, EOF), types);
 		assertEquals("""
-				test string with unicode 倀
+				test string with unicode 愛
 				  indented   continued \\
 				  escaped '''
 				  \\ inline
@@ -155,7 +155,7 @@ class LexerTest {
 		var dbml = """
 				'''
 				
-				test string with unicode 倀
+				test string with unicode 愛
 				  indented""";
 		var lexer = getLexer(dbml);
 		
@@ -167,7 +167,7 @@ class LexerTest {
 	
 	@Test
 	void testComment() {
-		var dbml = "//'test string with unicode 倀";
+		var dbml = "//'test string with unicode 愛";
 		var lexer = getLexer(dbml);
 		
 		var tokenList = lexer.tokenList();
@@ -178,7 +178,7 @@ class LexerTest {
 	
 	@Test
 	void testNotComment() {
-		var dbml = "/'test string with unicode 倀";
+		var dbml = "/'test string with unicode 愛";
 		var lexer = getLexer(dbml);
 		
 		var tokenList = lexer.tokenList();
@@ -192,7 +192,7 @@ class LexerTest {
 		var dbml = """
 				/*
 				
-				test string with unicode 倀
+				test string with unicode 愛
 				  indented
 				*/""";
 		var lexer = getLexer(dbml);
@@ -202,13 +202,13 @@ class LexerTest {
 		
 		assertEquals(List.of(COMMENT, EOF), types);
 		assertEquals("""
-				test string with unicode 倀
+				test string with unicode 愛
 				  indented""", tokenList.getFirst().getValue());
 	}
 	
 	@Test
 	void testLinebreak() {
-		var dbml = "\r\n'test string with unicode 倀'";
+		var dbml = "\r\n'test string with unicode 愛'";
 		var lexer = getLexer(dbml);
 		
 		var tokenList = lexer.tokenList();
