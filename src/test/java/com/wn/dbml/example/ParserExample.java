@@ -1,17 +1,16 @@
 package com.wn.dbml.example;
 
-import com.wn.dbml.compiler.lexer.LexerImpl;
-import com.wn.dbml.compiler.parser.ParserImpl;
+import com.wn.dbml.compiler.DbmlParser;
 import com.wn.dbml.model.Database;
 
-public class Example {
+public class ParserExample {
 	public static void main(String[] args) {
 		var dbml = """
 				Table table1 {
-				  table integer
+				  id integer
 				}""";
 		// parse the dbml
-		Database database = new ParserImpl().parse(new LexerImpl(dbml));
+		Database database = DbmlParser.parse(dbml);
 		// process the database structure
 		database.getSchemas().stream()
 				.flatMap(schema -> schema.getTables().stream())

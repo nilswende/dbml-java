@@ -26,7 +26,8 @@ class Example {
 }
 ```
 
-For a more elaborate example see the [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro).
+For more elaborate examples see the [DBML-to-Avro-Translator](https://github.com/nilswende/dbml-avro) or the
+[`DbmlPrinter`](src/main/java/com/wn/dbml/printer/DbmlPrinter.java) in this repository.
 
 Maven dependency:
 ```xml
