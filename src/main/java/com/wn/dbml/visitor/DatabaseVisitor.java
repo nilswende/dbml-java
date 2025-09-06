@@ -12,6 +12,9 @@ import com.wn.dbml.model.Table;
 import com.wn.dbml.model.TableGroup;
 import com.wn.dbml.model.TablePartial;
 
+/**
+ * Defines a visitor for database elements as per the <i>visitor pattern</i>.
+ */
 public interface DatabaseVisitor {
 	void visit(Column column);
 	
