@@ -33,12 +33,14 @@ public class DbmlFormatter {
 			return new DbmlFormatter(indentation, linebreak);
 		}
 		
-		public void setIndentation(String indentation) {
+		public Builder setIndentation(String indentation) {
 			this.indentation = Objects.requireNonNull(indentation);
+			return this;
 		}
 		
-		public void setLinebreak(String linebreak) {
+		public Builder setLinebreak(String linebreak) {
 			this.linebreak = Objects.requireNonNull(linebreak);
+			return this;
 		}
 	}
 }

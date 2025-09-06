@@ -45,9 +45,7 @@ public class DbmlPrinter implements DatabaseVisitor {
 	}
 	
 	private void indent() {
-		for (int i = 0; i < level; i++) {
-			sb.append(formatter.getIndentation());
-		}
+		for (int i = 0; i < level; i++) sb.append(formatter.getIndentation());
 	}
 	
 	private void println() {

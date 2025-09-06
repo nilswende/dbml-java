@@ -13,6 +13,20 @@ class DbmlPrinterTest {
 	}
 	
 	@Test
+	void testFormatter() {
+		var dbml = """
+				Table users {
+				    id integer
+				}""";
+		var database = parse(dbml);
+		
+		var printer = new DbmlPrinter(new DbmlFormatter.Builder().setIndentation("    ").setLinebreak("\r\n").build());
+		database.accept(printer);
+		
+		assertEquals(dbml, printer.toString().replace("\r\n", "\n"));
+	}
+	
+	@Test
 	void printProject() {
 		var dbml = """
 				Project project_name {
