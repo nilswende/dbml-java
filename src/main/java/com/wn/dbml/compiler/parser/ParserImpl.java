@@ -33,7 +33,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.SequencedSet;
-import java.util.Set;
 
 import static com.wn.dbml.compiler.token.TokenType.*;
 
@@ -265,7 +264,7 @@ public class ParserImpl implements Parser {
 	
 	private void parseIndex(Table table) {
 		try (var ignored = new LinebreakMode()) {
-			var columns = new LinkedHashSet<String>();
+			var columns = new ArrayList<String>();
 			if (typeIs(LPAREN)) {
 				do {
 					next(LITERAL, EXPR);
@@ -275,7 +274,7 @@ public class ParserImpl implements Parser {
 			} else {
 				parseIndexColumn(table, columns);
 			}
-			var index = table.addIndex(List.copyOf(columns));
+			var index = table.addIndex(columns);
 			if (lookaheadTypeIs(LBRACK)) {
 				next(LBRACK);
 				if (lookaheadTypeIs(PK)) {
@@ -294,14 +293,12 @@ public class ParserImpl implements Parser {
 		}
 	}
 	
-	private void parseIndexColumn(Table table, Set<String> index) {
+	private void parseIndexColumn(Table table, List<String> columns) {
 		var columnName = tokenValue();
 		if (typeIs(LITERAL) && !table.containsColumn(columnName)) {
 			error("Column '%s' is not defined", columnName);
 		}
-		if (!index.add(columnName)) {
-			error("Column '%s' is already defined", columnName);
-		}
+		columns.add(columnName);
 	}
 	
 	private void parseIndexSetting(Index index) {

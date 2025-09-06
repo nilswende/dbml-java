@@ -528,7 +528,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[5:11] Column 'id' is already defined", e.getMessage());
+		assertEquals("[5:12] Column 'id' is already defined", e.getMessage());
 	}
 	
 	@Test

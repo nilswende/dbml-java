@@ -20,7 +20,7 @@ public class Index implements SettingHolder<IndexSetting>, DatabaseElement {
 	Index(Table table, List<String> columns) {
 		this.table = Objects.requireNonNull(table);
 		this.columns = Objects.requireNonNull(columns);
-		var duplicate = CollectionUtil.firstDuplicate(columns);
+		var duplicate = CollectionUtil.findFirstDuplicate(columns);
 		if (duplicate != null) {
 			throw new IllegalArgumentException("Column '%s' is already defined".formatted(duplicate));
 		}
