@@ -22,7 +22,7 @@ public final class Name {
 	}
 	
 	public static String of(Schema schema, String table) {
-		return ofTable(schema.toString(), table);
+		return ofTable(schema.getName(), table);
 	}
 	
 	public static String of(Table table, String column) {

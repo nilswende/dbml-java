@@ -1,5 +1,6 @@
 package com.wn.dbml.model;
 
+import com.wn.dbml.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
@@ -78,7 +79,7 @@ public class Schema implements DatabaseElement {
 	
 	@Override
 	public String toString() {
-		return name;
+		return Name.of(name);
 	}
 	
 	@Override
