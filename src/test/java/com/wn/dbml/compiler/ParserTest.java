@@ -1575,6 +1575,37 @@ class ParserTest {
 	}
 	
 	@Test
+	void testTablePartialsLoop() {
+		var dbml = """
+				TablePartial tp1 {
+				  id1 int [pk, not null]
+				  ~tp2
+				}
+				
+				TablePartial tp2 {
+				  id2 int [pk, not null]
+				  ~tp1
+				}
+				
+				Table tbl {
+				  ~tp2
+				  name varchar
+				}""";
+		var database = parse(dbml);
+		
+		var schema = getDefaultSchema(database);
+		var tbl = schema.getTable("tbl");
+		assertNotNull(tbl);
+		assertEquals(2, tbl.getColumns().size());
+		var id1 = tbl.getColumn("id1");
+		assertNull(id1);
+		var id2 = tbl.getColumn("id2");
+		assertNotNull(id2);
+		var name = tbl.getColumn("name");
+		assertNotNull(name);
+	}
+	
+	@Test
 	void testTablePartialAlias() {
 		var dbml = """
 				TablePartial base_template as alias {

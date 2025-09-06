@@ -22,6 +22,7 @@ import com.wn.dbml.model.SettingHolder;
 import com.wn.dbml.model.Table;
 import com.wn.dbml.model.TableGroup;
 import com.wn.dbml.model.TableGroupSetting;
+import com.wn.dbml.model.TablePartial;
 import com.wn.dbml.model.TableSetting;
 import com.wn.dbml.util.Name;
 
@@ -515,12 +516,16 @@ public class ParserImpl implements Parser {
 				if (partial == null) {
 					error("Can not find TablePartial '%s'", ref);
 				} else {
-					if (!partial.equals(table)) {
+					if (!partial.equals(table) && checkLoop(table, partial)) {
 						table.addTablePartial(partial);
 					}
 				}
 			}
 		}
+	}
+	
+	private boolean checkLoop(Table table, TablePartial partial) {
+		return !(table instanceof TablePartial tp && partial.getTablePartials().contains(tp));
 	}
 	
 	private void createRelationships() {
