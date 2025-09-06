@@ -40,15 +40,9 @@ public class Schema implements DatabaseElement {
 	}
 	
 	public Table createTable(String name) {
-		if (name.isEmpty()) {
-			throw new IllegalArgumentException("Table must have a name");
-		}
 		var table = new Table(this, name);
 		var added = tables.putIfAbsent(name, table) == null;
-		if (!added) {
-			throw new IllegalArgumentException("Table '%s' is already defined".formatted(name));
-		}
-		return table;
+		return added ? table : null;
 	}
 	
 	public Set<Table> getTables() {

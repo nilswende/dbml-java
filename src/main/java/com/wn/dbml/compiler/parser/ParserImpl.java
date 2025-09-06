@@ -117,6 +117,9 @@ public class ParserImpl implements Parser {
 		var tableName = parseTableName();
 		var schema = database.getOrCreateSchema(tableName.schema());
 		var table = schema.createTable(tableName.table());
+		if (table == null) {
+			error("Table '%s' is already defined", tableName);
+		}
 		parseTableHead(table);
 		return table;
 	}
