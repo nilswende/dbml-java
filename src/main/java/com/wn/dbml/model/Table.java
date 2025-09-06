@@ -4,6 +4,7 @@ import com.wn.dbml.util.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,11 +45,11 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	public Set<TablePartial> getTablePartials() {
 		var result = new LinkedHashSet<>(tablePartials.values());
 		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getTablePartials()));
-		return result;
+		return Collections.unmodifiableSet(result);
 	}
 	
 	public Set<TablePartial> getLocalTablePartials() {
-		return new LinkedHashSet<>(tablePartials.values());
+		return Collections.unmodifiableSet(new LinkedHashSet<>(tablePartials.values()));
 	}
 	
 	@Override
@@ -59,11 +60,11 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	public Map<TableSetting, String> getSettings() {
 		var result = new EnumMap<>(settings);
 		tablePartials.reversed().values().forEach(tp -> tp.getSettings().forEach(result::putIfAbsent));
-		return result;
+		return Collections.unmodifiableMap(result);
 	}
 	
 	public Map<TableSetting, String> getLocalSettings() {
-		return new EnumMap<>(settings);
+		return Collections.unmodifiableMap(settings);
 	}
 	
 	public boolean containsColumn(String columnName) {
@@ -81,7 +82,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Set<Column> getColumns() {
-		return new LinkedHashSet<>(gatherColumns().values());
+		return Collections.unmodifiableSet(new LinkedHashSet<>(gatherColumns().values()));
 	}
 	
 	protected final SequencedMap<String, Column> gatherColumns() {
@@ -91,7 +92,7 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Set<Column> getLocalColumns() {
-		return new LinkedHashSet<>(columns.values());
+		return Collections.unmodifiableSet(new LinkedHashSet<>(columns.values()));
 	}
 	
 	public Index getIndex(String indexName) {
@@ -108,11 +109,11 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	public Set<Index> getIndexes() {
 		var result = new LinkedHashSet<>(indexes);
 		tablePartials.reversed().values().forEach(tp -> result.addAll(tp.getIndexes()));
-		return result;
+		return Collections.unmodifiableSet(result);
 	}
 	
 	public Set<Index> getLocalIndexes() {
-		return new LinkedHashSet<>(indexes);
+		return Collections.unmodifiableSet(new LinkedHashSet<>(indexes));
 	}
 	
 	public Alias getAlias() {
