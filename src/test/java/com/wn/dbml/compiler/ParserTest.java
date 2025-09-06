@@ -194,7 +194,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[1:14] Schema must have a name", e.getMessage());
+		assertEquals("[1:14] Name must not be empty", e.getMessage());
 	}
 	
 	@Test

@@ -1,6 +1,7 @@
 package com.wn.dbml.model;
 
 import com.wn.dbml.util.Chars;
+import com.wn.dbml.util.Name;
 import com.wn.dbml.visitor.DatabaseElement;
 import com.wn.dbml.visitor.DatabaseVisitor;
 
@@ -24,9 +25,7 @@ public class Database implements DatabaseElement {
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
-		if (name.isEmpty()) {
-			throw new IllegalArgumentException("Schema must have a name");
-		}
+		Name.requireNonEmpty(name);
 		var created = new Schema(this, name);
 		var existing = schemas.putIfAbsent(name, created);
 		return existing == null ? created : existing;
