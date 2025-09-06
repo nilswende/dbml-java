@@ -205,7 +205,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[2:13] Column must have a name", e.getMessage());
+		assertEquals("[2:13] Name must not be empty", e.getMessage());
 	}
 	
 	@Test
@@ -216,7 +216,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[2:8] Invalid column type", e.getMessage());
+		assertEquals("[2:8] Name must not be empty", e.getMessage());
 	}
 	
 	@Test
@@ -227,7 +227,7 @@ class ParserTest {
 				}""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[2:4] Enum value must have a name", e.getMessage());
+		assertEquals("[2:4] Name must not be empty", e.getMessage());
 	}
 	
 	@Test
@@ -889,7 +889,7 @@ class ParserTest {
 				""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[8:26] Two endpoints are the same", e.getMessage());
+		assertEquals("[8:27] Two endpoints are the same", e.getMessage());
 	}
 	
 	@Test
@@ -907,7 +907,7 @@ class ParserTest {
 				""";
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
-		assertEquals("[9:34] Two endpoints have unequal number of fields", e.getMessage());
+		assertEquals("[9:35] Two endpoints have unequal number of fields", e.getMessage());
 	}
 	
 	@Test
@@ -1585,5 +1585,22 @@ class ParserTest {
 		
 		var e = assertThrows(ParsingException.class, () -> parse(dbml));
 		assertEquals("[4:1] Can not find TablePartial 'base_template'", e.getMessage());
+	}
+	
+	@Test
+	void testTablePartialDuplicate() {
+		var dbml = """
+				TablePartial base_template {
+				  id int [pk, not null]
+				}
+				
+				Table posts {
+				  ~base_template
+				  ~base_template
+				  title varchar
+				}""";
+		
+		var e = assertThrows(ParsingException.class, () -> parse(dbml));
+		assertEquals("[7:16] Duplicate injection 'base_template'", e.getMessage());
 	}
 }

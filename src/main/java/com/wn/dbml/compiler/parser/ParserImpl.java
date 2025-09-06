@@ -68,11 +68,11 @@ public class ParserImpl implements Parser {
 					}
 				}
 			}
+			injectTablePartials();
+			createRelationships();
 		} catch (IllegalArgumentException | UnsupportedOperationException e) {
 			error(e.getMessage());
 		}
-		injectTablePartials();
-		createRelationships();
 		return database;
 	}
 	
@@ -117,9 +117,6 @@ public class ParserImpl implements Parser {
 		var tableName = parseTableName();
 		var schema = database.getOrCreateSchema(tableName.schema());
 		var table = schema.createTable(tableName.table());
-		if (table == null) {
-			error("Table '%s' is already defined", tableName);
-		}
 		parseTableHead(table);
 		return table;
 	}
@@ -129,9 +126,6 @@ public class ParserImpl implements Parser {
 		if (typeIs(AS)) {
 			next(LITERAL, DSTRING); // alias
 			var aliasName = tokenValue();
-			if (database.containsAlias(aliasName)) {
-				error("Alias '%s' is already defined", aliasName);
-			}
 			table.setAlias(new Alias(aliasName));
 			next(LBRACK, LBRACE);
 		}
@@ -180,7 +174,7 @@ public class ParserImpl implements Parser {
 		var ref = tokenValue();
 		var added = tablePartialRefs.computeIfAbsent(table, x -> new LinkedHashSet<>()).add(ref);
 		if (!added) {
-			error("Duplicate injection %s", ref);
+			error("Duplicate injection '%s'", ref);
 		}
 	}
 	
@@ -531,11 +525,6 @@ public class ParserImpl implements Parser {
 		for (var definition : relationshipDefinitions) {
 			var from = definition.from();
 			var to = definition.to();
-			if (from.equals(to)) {
-				error(definition, "Two endpoints are the same");
-			} else if (from.columns().size() != to.columns().size()) {
-				error(definition, "Two endpoints have unequal number of fields");
-			}
 			var relationship = database.createRelationship(definition.name(), definition.relation(),
 					validateColumnNames(definition, from), validateColumnNames(definition, to), definition.settings());
 			if (relationship == null) {

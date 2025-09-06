@@ -11,7 +11,7 @@ public class EnumValue {
 	
 	EnumValue(Enum anEnum, String name) {
 		this.anEnum = Objects.requireNonNull(anEnum);
-		this.name = Objects.requireNonNull(name);
+		this.name = Name.requireNonEmpty(name);
 	}
 	
 	public Enum getEnum() {

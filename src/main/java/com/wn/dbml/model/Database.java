@@ -20,14 +20,14 @@ public class Database implements DatabaseElement {
 	private final Map<String, NamedNote> namedNotes = new LinkedHashMap<>();
 	private final Map<String, TableGroup> tableGroups = new LinkedHashMap<>();
 	private final Map<String, TablePartial> tablePartials = new LinkedHashMap<>();
-	private final Schema tablePartialsSchema = new Schema(Chars.EMPTY);
+	private final Schema tablePartialsSchema = new Schema(this, Chars.EMPTY);
 	private Project project;
 	
 	public Schema getOrCreateSchema(String name) {
 		if (name.isEmpty()) {
 			throw new IllegalArgumentException("Schema must have a name");
 		}
-		var created = new Schema(name);
+		var created = new Schema(this, name);
 		var existing = schemas.putIfAbsent(name, created);
 		return existing == null ? created : existing;
 	}

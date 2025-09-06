@@ -28,9 +28,6 @@ public class Enum implements DatabaseElement {
 	}
 	
 	public EnumValue addValue(String name) {
-		if (name.isEmpty()) {
-			throw new IllegalArgumentException("Enum value must have a name");
-		}
 		var value = new EnumValue(this, name);
 		var added = values.add(value);
 		return added ? value : null;

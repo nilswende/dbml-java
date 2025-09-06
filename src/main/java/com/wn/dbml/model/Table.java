@@ -74,12 +74,6 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public Column addColumn(String columnName, String datatype) {
-		if (columnName.isEmpty()) {
-			throw new IllegalArgumentException("Column must have a name");
-		}
-		if (datatype.isEmpty()) {
-			throw new IllegalArgumentException("Invalid column type");
-		}
 		var column = new Column(this, columnName, datatype);
 		var added = columns.putIfAbsent(columnName, column) == null;
 		return added ? column : null;
@@ -126,8 +120,16 @@ public class Table implements SettingHolder<TableSetting>, DatabaseElement {
 	}
 	
 	public void setAlias(Alias alias) {
-		if (!alias.getName().isEmpty()) {
-			this.alias = alias;
+		if (alias == null) {
+			this.alias = null;
+		} else {
+			var aliasName = alias.getName();
+			if (!aliasName.isEmpty() && !alias.equals(this.alias)) {
+				if (schema.getDatabase().containsAlias(aliasName)) {
+					throw new IllegalArgumentException("Alias '%s' is already defined".formatted(aliasName));
+				}
+				this.alias = alias;
+			}
 		}
 	}
 	

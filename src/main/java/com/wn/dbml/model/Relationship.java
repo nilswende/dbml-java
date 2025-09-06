@@ -21,6 +21,11 @@ public class Relationship implements SettingHolder<RelationshipSetting>, Databas
 		this.relation = Objects.requireNonNull(relation);
 		this.from = Objects.requireNonNull(from);
 		this.to = Objects.requireNonNull(to);
+		if (from.equals(to)) {
+			throw new IllegalArgumentException("Two endpoints are the same");
+		} else if (from.size() != to.size()) {
+			throw new IllegalArgumentException("Two endpoints have unequal number of fields");
+		}
 	}
 	
 	public String getName() {

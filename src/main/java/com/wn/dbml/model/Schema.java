@@ -13,12 +13,18 @@ import java.util.Set;
 
 public class Schema implements DatabaseElement {
 	public static final String DEFAULT_NAME = "public";
+	private final Database database;
 	private final String name;
 	private final Map<String, Table> tables = new LinkedHashMap<>();
 	private final Map<String, Enum> enums = new LinkedHashMap<>();
 	
-	Schema(String name) {
+	Schema(Database database, String name) {
+		this.database = database;
 		this.name = Objects.requireNonNull(name);
+	}
+	
+	public Database getDatabase() {
+		return database;
 	}
 	
 	public String getName() {
@@ -39,7 +45,10 @@ public class Schema implements DatabaseElement {
 		}
 		var table = new Table(this, name);
 		var added = tables.putIfAbsent(name, table) == null;
-		return added ? table : null;
+		if (!added) {
+			throw new IllegalArgumentException("Table '%s' is already defined".formatted(name));
+		}
+		return table;
 	}
 	
 	public Set<Table> getTables() {
