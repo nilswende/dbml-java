@@ -75,7 +75,7 @@ class LexerTest {
 		var types = tokenList.stream().map(Token::getType).toList();
 		
 		assertEquals(List.of(TABLE, EOF), types);
-		assertEquals(dbml, tokenList.get(0).getValue());
+		assertEquals(dbml, tokenList.getFirst().getValue());
 	}
 	
 	@ParameterizedTest
@@ -89,7 +89,7 @@ class LexerTest {
 		var types = tokenList.stream().map(Token::getType).toList();
 		
 		assertEquals(List.of(expectedType, EOF), types);
-		assertEquals(str, tokenList.get(0).getValue());
+		assertEquals(str, tokenList.getFirst().getValue());
 	}
 	
 	static Stream<Arguments> testString() {
@@ -111,7 +111,7 @@ class LexerTest {
 		var types = tokenList.stream().map(Token::getType).toList();
 		
 		assertEquals(List.of(SSTRING, EOF), types);
-		assertEquals(str.replace("\\", ""), tokenList.get(0).getValue());
+		assertEquals(str.replace("\\", ""), tokenList.getFirst().getValue());
 	}
 	
 	@Test
@@ -147,7 +147,7 @@ class LexerTest {
 				  indented   continued \\
 				  escaped '''
 				  \\ inline
-				end""", tokenList.get(0).getValue());
+				end""", tokenList.getFirst().getValue());
 	}
 	
 	@Test
@@ -203,7 +203,7 @@ class LexerTest {
 		assertEquals(List.of(COMMENT, EOF), types);
 		assertEquals("""
 				test string with unicode 倀
-				  indented""", tokenList.get(0).getValue());
+				  indented""", tokenList.getFirst().getValue());
 	}
 	
 	@Test
@@ -255,7 +255,7 @@ class LexerTest {
 		
 		if (expectedType == COLOR_CODE) {
 			assertEquals(List.of(expectedType, EOF), types);
-			assertEquals(dbml, tokenList.get(0).getValue());
+			assertEquals(dbml, tokenList.getFirst().getValue());
 		} else {
 			assertEquals(List.of(expectedType), types);
 		}
